@@ -78,7 +78,7 @@ export default function RefundPolicyPage() {
               <ShieldCheck className="w-5 h-5" />
             </div>
             <h3 className="font-extrabold text-slate-900 text-sm">1-Year Product Warranty</h3>
-            <p className="text-xs text-slate-500 font-medium">Long-term protection backed by 12-month replacement support for all genuine products.</p>
+            <p className="text-xs text-slate-500 font-medium">Long-term protection backed by 1-year replacement support for all genuine products.</p>
           </div>
         </div>
 

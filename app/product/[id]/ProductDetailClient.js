@@ -15,11 +15,11 @@ import { ProductJsonLd, BreadcrumbJsonLd } from "../../../components/JsonLd";
 const getDescription = (id) => {
   switch (id) {
     case "p1":
-      return "Equipped with advanced Gallium Nitride (GaN) technology, this ultra-compact wall adapter delivers efficient power for up to three devices simultaneously. Smart power allocation ensures optimal wattage for your laptop, smartphone, and tablet while protecting against overheating and overvoltage.";
+      return "Engineered for high-resolution audio and video signal transmission. Features 24K gold-plated connectors, multi-layer EMI shielding, and supports up to 4K Ultra HD resolution at 60Hz for seamless dual-monitor workstations and display setups.";
     case "p2":
-      return "Power up on the move with confidence. This massive 20,000 mAh high-density portable charger supplies up to 65W power, capable of recharging laptops and phones at maximum speeds. The integrated real-time OLED screen keeps you updated on the precise remaining battery life.";
+      return "Engineered for maximum workstation productivity. This premium solid aluminum 11-in-1 Type-C docking station features dual 4K HDMI displays, 100W Power Delivery pass-through, Gigabit Ethernet, SD/MicroSD card readers, and high-speed USB 3.0 ports.";
     case "p3":
-      return "Engineered for durability and high-speed energy transfer. This heavy-duty nylon braided cable features an integrated digital live-wattage display that displays exact charging rates in real time. Supports Power Delivery up to 100W for quick-charging laptops and mobile devices.";
+      return "Engineered for maximum signal purity and high-speed audio-video transmission. Features heavy-duty nylon braided outer jacket and 24K gold-plated connectors to protect against signal interference and physical wear.";
     case "p4":
       return "Elevate your professional workspace with stunning video clarity. This 4K ultra-high-definition webcam delivers crystal clear imagery, featuring an integrated LED ring light with adjustable touch-brightness controls to ensure optimal lighting in any environment.";
     case "p5":
@@ -27,7 +27,7 @@ const getDescription = (id) => {
     case "p6":
       return "Engineered for high-density network connectivity. Features 100% pure copper conductors and gold-plated RJ45 connectors to deliver crystal-clear Gigabit and 10Gbps data transmission speeds with zero latency.";
     default:
-      return "A premium hardware accessory crafted with extreme precision and premium materials to match your modern workstation setup. Engineered with durability and visual aesthetics in mind.";
+      return "A premium connectivity solution crafted with extreme precision and premium materials to match your modern workstation setup. Engineered with durability and visual aesthetics in mind.";
   }
 };
 

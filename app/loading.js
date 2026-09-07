@@ -6,9 +6,9 @@ export default function Loading() {
   const [statusIndex, setStatusIndex] = useState(0);
 
   const statuses = [
-    "Initializing GaN Power Core...",
-    "Configuring Smart Power Allocation...",
-    "Optimizing Charging Circuits...",
+    "Initializing RAVTRON® Connectivity...",
+    "Configuring Signal Integrity...",
+    "Optimizing Display Channels...",
     "Synchronizing Workspace Hubs...",
     "Connecting to RAVTRON® Network..."
   ];

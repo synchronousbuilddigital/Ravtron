@@ -128,7 +128,7 @@ export default function CartPage() {
                 Your Shopping Bag is Empty
               </h2>
               <p className="text-xs font-semibold text-slate-500 leading-relaxed">
-                Explore our catalog of high-performance fast chargers, premium cables, and smart accessories to populate your bag.
+                Explore our catalog of high-performance display cables, multiport docking stations, and enterprise connectivity solutions to populate your bag.
               </p>
             </div>
             <button

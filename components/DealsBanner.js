@@ -48,7 +48,7 @@ export default function DealsBanner() {
             Up to 40% Off on Bestsellers
           </h2>
           <p className="text-sm font-semibold text-[#1E293B]/60 leading-relaxed">
-            Upgrade your portable workstation with premium GaN wall adapters, high-density batteries, and heavy-duty display cables. Offer valid while stocks last.
+            Upgrade your portable workstation with premium docking stations, 4K video converters, and heavy-duty display cables. Offer valid while stocks last.
           </p>
           <div className="pt-2">
             <a

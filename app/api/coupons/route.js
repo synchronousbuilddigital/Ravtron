@@ -13,7 +13,7 @@ const DEFAULT_COUPONS = [
   {
     code: "FESTIVE20",
     title: "Festive Season Special 20% OFF",
-    description: "Get 20% OFF on all GaN Chargers, Cables, and Workspace Gear.",
+    description: "Get 20% OFF on all Display Cables, Docking Stations, and Converters.",
     type: "percentage",
     discountValue: 20,
     minPurchase: 0,

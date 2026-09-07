@@ -76,7 +76,7 @@ export default function OfflinePage() {
 
         {/* Tech Branding Footer */}
         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-2">
-          GaN Power • Offline Cache Mode
+          RAVTRON Products • Offline Cache Mode
         </p>
       </div>
     </div>

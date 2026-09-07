@@ -85,6 +85,16 @@ export default function CategoriesPage() {
     router.push(`/shop?category=${encodeURIComponent(categoryName)}`);
   };
 
+  const sortedCategories = React.useMemo(() => {
+    if (!Array.isArray(categoriesList)) return [];
+    return [...categoriesList].sort((a, b) => {
+      const aPos = a.homePosition > 0 ? a.homePosition : 999;
+      const bPos = b.homePosition > 0 ? b.homePosition : 999;
+      if (aPos !== bPos) return aPos - bPos;
+      return (a.name || "").localeCompare(b.name || "");
+    });
+  }, [categoriesList]);
+
   return (
     <div className="min-h-screen bg-bg-brand text-text-brand antialiased selection:bg-[#3674B5] selection:text-white">
       <Navbar />
@@ -93,7 +103,7 @@ export default function CategoriesPage() {
         
         {/* Categories Grid (2 Columns on Mobile, 4 Columns on Large Screens) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
-          {Array.isArray(categoriesList) && categoriesList.map((category) => {
+          {sortedCategories.map((category) => {
             const theme = themeMap[category.name] || {
               bg: "bg-[#3674B5]/5",
               border: "border-[#1E293B]/15",

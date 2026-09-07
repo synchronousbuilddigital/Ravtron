@@ -65,7 +65,7 @@ export default function Categories() {
             Shop by <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">Category</span>
           </h2>
           <p className="text-sm sm:text-base font-semibold text-[#1E293B]/50 leading-relaxed">
-            Premium connectivity solutions and hardware collections tailored for your workspace.
+            Premium connectivity solutions and product collections tailored for your workspace.
           </p>
         </div>
 

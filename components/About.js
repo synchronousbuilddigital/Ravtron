@@ -7,20 +7,20 @@ export default function About() {
   const pillars = [
     {
       icon: <Cpu className="w-6 h-6 text-[#3674B5]" />,
-      title: "GaN Charging Engineering",
-      desc: "We utilize next-generation Gallium Nitride (GaN) semiconductors to pack multi-port high-wattage speed into pocket-sized chargers that operate at maximum efficiency with minimal heat.",
+      title: "Connectivity & Signal Engineering",
+      desc: "We engineer high-speed display cables, docking stations, and converters using pure copper conductors, multi-shielding, and gold-plated connectors for maximum signal purity.",
       glow: "rgba(54, 116, 181, 0.1)"
     },
     {
       icon: <Box className="w-6 h-6 text-[#DEC89E]" />,
       title: "Workspace Craftsmanship",
-      desc: "Our hardware design emphasizes tactile textures like sage green, sand beige, and braided cord finishes. We build premium accessories that double as desk decor pieces.",
+      desc: "Our design emphasizes tactile textures, solid aluminum frames, and durable cord finishes. We build premium accessories engineered for high-performance productivity.",
       glow: "rgba(222, 200, 158, 0.15)"
     },
     {
       icon: <ShieldCheck className="w-6 h-6 text-[#3674B5]" />,
       title: "Device Intelligence & Safety",
-      desc: "Every product is built with custom smart circuitry. Multiport docking station connectivity, digital wattage display cables, and advanced thermal protection keep your devices protected.",
+      desc: "Every product is built with smart shielding and protective circuitry. Multiport docking stations, high-bandwidth display cables, and CCTV power supplies keep your setup seamless.",
       glow: "rgba(54, 116, 181, 0.1)"
     }
   ];
@@ -46,15 +46,15 @@ export default function About() {
             </div>
             
             <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1E293B] tracking-tight leading-tight">
-              A Design-First Hardware Collective <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">For Modern Workspace Creators.</span>
+              A Design-First Product Collective <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">For Modern Workspace Creators.</span>
             </h2>
             
             <p className="text-sm sm:text-base font-semibold text-[#1E293B]/60 leading-relaxed">
-              At RAVTRON, we believe workspace hardware should never be generic. We are an engineering collective focused on fusing high-performance connectivity with premium aesthetic precision.
+              At RAVTRON, we believe workspace products should never be generic. We are an engineering collective focused on fusing high-performance connectivity with premium aesthetic precision.
             </p>
             
             <p className="text-sm font-semibold text-[#1E293B]/50 leading-relaxed">
-              Whether it is our 65W GaN wall chargers wrapped in a muted Sage Green, our 11-in-1 Type-C multiport docking stations, or our 4K ringlight webcams, each piece is engineered to elevate your daily digital production. We design for creators, tech enthusiasts, and professionals who curate their setups with intention.
+              Whether it is our 11-in-1 Type-C multiport docking stations, high-density Cat6 patch cords, or 4K ringlight webcams, each piece is engineered to elevate your daily digital production. We design for creators, tech enthusiasts, and professionals who curate their setups with intention.
             </p>
           </div>
 

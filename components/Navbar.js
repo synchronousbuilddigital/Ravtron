@@ -82,9 +82,18 @@ export default function Navbar() {
     }
   ];
 
-  const categoriesToRender = Array.isArray(categoriesListFromContext) && categoriesListFromContext.length > 0
+  const rawNavCategories = Array.isArray(categoriesListFromContext) && categoriesListFromContext.length > 0
     ? categoriesListFromContext
     : defaultCategoriesData;
+
+  const categoriesToRender = React.useMemo(() => {
+    return [...rawNavCategories].sort((a, b) => {
+      const aPos = a.homePosition > 0 ? a.homePosition : 999;
+      const bPos = b.homePosition > 0 ? b.homePosition : 999;
+      if (aPos !== bPos) return aPos - bPos;
+      return (a.name || "").localeCompare(b.name || "");
+    });
+  }, [rawNavCategories]);
 
   const handleSignOut = async () => {
     if (clearCartAndWishlist) clearCartAndWishlist();

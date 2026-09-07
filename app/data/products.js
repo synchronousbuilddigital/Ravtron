@@ -1,24 +1,24 @@
 export const products = [
   {
     id: "p1",
-    name: "RAVTRON 65W GaN Wall Charger",
-    shortSpec: "2x USB-C · 1x USB-A · 65W · GaN Fast Charge",
-    price: 2499,
-    originalPrice: 3499,
-    discountBadge: "-28%",
+    name: "RAVTRON 4K Ultra HD DisplayPort to HDMI Adapter",
+    shortSpec: "4K @ 60Hz · Ultra HD Audio & Video · Gold Plated",
+    price: 1299,
+    originalPrice: 1999,
+    discountBadge: "-35%",
     rating: 4.9,
     reviewsCount: 182,
     image: "/logo.png",
     gallery: [
       "/logo.png"
     ],
-    category: "Accessories",
-    subcategory: "Power Adapter",
+    category: "Converters",
+    subcategory: "Display Port",
     featured: true,
     isNewArrival: false,
-    color: "Sage Green",
-    stock: 8,
-    description: "Equipped with advanced Gallium Nitride (GaN) technology, this ultra-compact wall adapter delivers efficient power for up to three devices simultaneously. Smart power allocation ensures optimal wattage for your laptop, smartphone, and tablet while protecting against overheating and overvoltage."
+    color: "Anodized Grey",
+    stock: 18,
+    description: "Engineered for high-resolution audio and video signal transmission. Features 24K gold-plated connectors, multi-layer EMI shielding, and supports up to 4K Ultra HD resolution at 60Hz for seamless dual-monitor workstations and display setups."
   },
   {
     id: "p2",
@@ -44,8 +44,8 @@ export const products = [
   },
   {
     id: "p3",
-    name: "RAVTRON Braided 100W Wattage Cable",
-    shortSpec: "1.8m · 100W PD · Digital Live Wattage Display",
+    name: "RAVTRON Ultra-Speed Braided 4K HDMI Cable",
+    shortSpec: "1.8m · 4K 60Hz · Gold Plated · Heavy Duty Nylon",
     price: 899,
     originalPrice: 1299,
     discountBadge: "-30%",
@@ -56,13 +56,13 @@ export const products = [
       "/logo.png"
     ],
     category: "Cables",
-    subcategory: "Power Cords",
+    subcategory: "HDMI Cables",
     sizes: ["1.8 Mtr", "3.0 Mtr", "5 Mtr"],
     featured: true,
     isNewArrival: true,
-    color: "Cream Cord",
+    color: "Nylon Black",
     stock: 45,
-    description: "Engineered for durability and high-speed energy transfer. This heavy-duty nylon braided cable features an integrated digital live-wattage display that displays exact charging rates in real time. Supports Power Delivery up to 100W for quick-charging laptops and mobile devices."
+    description: "Engineered for maximum signal purity and high-speed audio-video transmission. Features heavy-duty nylon braided outer jacket and 24K gold-plated connectors to protect against signal interference and physical wear."
   },
   {
     id: "p4",

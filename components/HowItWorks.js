@@ -7,7 +7,7 @@ export default function HowItWorks() {
     {
       num: "01",
       title: "Browse & Pick Your Product",
-      description: "Find the precise power capacity, charging wattage, and form factor engineered for your dynamic workspace."
+      description: "Find the precise display cables, docking stations, converters, and networking gear engineered for your workspace."
     },
     {
       num: "02",
@@ -36,7 +36,7 @@ export default function HowItWorks() {
             Order in 3 Simple Steps
           </h2>
           <p className="text-sm font-semibold text-[#1E293B]/50">
-            Getting premium power has never been more straightforward or secure.
+            Getting premium connectivity products has never been more straightforward or secure.
           </p>
         </div>
 

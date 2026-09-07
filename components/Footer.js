@@ -52,7 +52,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
 
         {/* Main Footer Links Block */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6 md:gap-8 lg:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 md:gap-8 lg:gap-6">
 
           {/* Brand Info Column */}
           <div className="space-y-4 sm:col-span-2 lg:col-span-2 border-b border-[#1E293B]/10 lg:border-0 pb-6 lg:pb-0">
@@ -185,7 +185,7 @@ export default function Footer() {
           </div>
 
           {/* Company & Contact Column */}
-          <div className="space-y-0 lg:space-y-4 pb-2 lg:pb-0">
+          <div className="space-y-0 lg:space-y-4 pb-2 lg:pb-0 min-w-0">
             <button
               onClick={() => toggleSection("contact")}
               className="w-full flex items-center justify-between py-3 text-left lg:pointer-events-none lg:py-0 focus:outline-none"
@@ -199,10 +199,14 @@ export default function Footer() {
                 )}
               </span>
             </button>
-            <ul className={`${openSections.contact ? "block" : "hidden"} lg:block space-y-3.5 mt-2 lg:mt-4 pb-4 lg:pb-0 text-sm font-semibold text-[#1E293B]/70`}>
-              <li className="flex flex-col">
+            <ul className={`${openSections.contact ? "block" : "hidden"} lg:block space-y-3.5 mt-2 lg:mt-4 pb-4 lg:pb-0 text-sm font-semibold text-[#1E293B]/70 min-w-0`}>
+              <li className="flex flex-col min-w-0">
                 <span className="text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-wide">Write to Us</span>
-                <a href="mailto:officerequirementsgurgaon@gmail.com" className="hover:text-[#3674B5] transition-colors mt-0.5">
+                <a 
+                  href="mailto:officerequirementsgurgaon@gmail.com" 
+                  className="hover:text-[#3674B5] transition-colors mt-0.5 break-all text-xs font-semibold leading-snug"
+                  title="officerequirementsgurgaon@gmail.com"
+                >
                   officerequirementsgurgaon@gmail.com
                 </a>
               </li>

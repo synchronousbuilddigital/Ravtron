@@ -23,7 +23,7 @@ export default function Hero() {
       disconnected: "/logo.png",
       connected: "/logo.png",
       productId: "p4",
-      tag1: "GaN Pro 65W", tag1Desc: "Fast Charging",
+      tag1: "4K Adapter", tag1Desc: "Ultra HD Signal",
       tag2: "Ring Webcam", tag2Desc: "4K Video Stream",
       tag3: "Power Cord", tag3Desc: "Heavy Duty"
     },

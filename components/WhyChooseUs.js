@@ -19,18 +19,18 @@ export default function WhyChooseUs() {
   const features = [
     {
       icon: Zap,
-      title: "GaN Fast Charging Technology",
-      description: "Next-gen Gallium Nitride semiconductors deliver up to 3x faster charging speeds in a 40% smaller footprint with significantly lower heat generation."
+      title: "Ultra High-Speed Signal Integrity",
+      description: "Next-generation signal shielding and premium copper conductors deliver loss-free 4K/8K display transmission and 10Gbps high-speed data transfer."
     },
     {
       icon: Shield,
-      title: "Multi-layer Safety Protection",
-      description: "Equipped with active real-time chip temperature sensors, input over-current shutdown, voltage stabilizers, and anti-static circuit protection."
+      title: "Multi-Layer Circuit Protection",
+      description: "Equipped with active EMI shielding, over-voltage suppressors, ESD anti-static protection, and gold-plated corrosion resistant connectors."
     },
     {
       icon: Truck,
       title: "48-Hour Pan-India Delivery",
-      description: "Get your essential gear fast. Same-day dispatch with express air shipping to all metros and major Indian cities within 48 hours."
+      description: "Get your essential connectivity gear fast. Same-day dispatch with express air shipping to all major Indian cities within 48 hours."
     },
     {
       icon: RotateCcw,
@@ -40,12 +40,12 @@ export default function WhyChooseUs() {
     {
       icon: Award,
       title: "BIS / CE Certified Products",
-      description: "Tested and approved. Every single power source is certified by national and international safety commissions to meet absolute standards."
+      description: "Tested and approved. Every single RAVTRON product is certified by national and international safety commissions to meet absolute quality standards."
     },
     {
       icon: Headphones,
       title: "24/7 Dedicated Support",
-      description: "Our customer success squad is always online. Contact us via WhatsApp or email for instant hardware advice, setup, and troubleshooting."
+      description: "Our customer success squad is always online. Contact us via WhatsApp or email for instant product advice, setup, and troubleshooting."
     }
   ];
 

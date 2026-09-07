@@ -826,7 +826,7 @@ export default function AdminPanelPage() {
         const errData = await response.json();
         throw new Error(errData.error || "Failed to update category position");
       }
-      showToast(position > 0 ? `Moved to slot ${position} on home page.` : "Removed from home page.");
+      showToast(position > 0 ? `Category display position set to Position ${position}` : "Position reset to unranked.");
       await fetchAdminData();
     } catch (err) {
       console.error("Error updating category position:", err);
@@ -2195,10 +2195,10 @@ export default function AdminPanelPage() {
                     <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Set home page position (max 6 slots) or manage subcategories.</p>
                   </div>
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Home Slots Used:</span>
-                    <span className={`text-xs font-black ${adminCategories.filter(c => c.homePosition > 0).length >= 6 ? "text-rose-500" : "text-emerald-600"
+                    <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Home Grid Featured (1-6):</span>
+                    <span className={`text-xs font-black ${adminCategories.filter(c => c.homePosition >= 1 && c.homePosition <= 6).length >= 6 ? "text-emerald-600" : "text-amber-600"
                       }`}>
-                      {adminCategories.filter(c => c.homePosition > 0).length}/6
+                      {adminCategories.filter(c => c.homePosition >= 1 && c.homePosition <= 6).length}/6
                     </span>
                   </div>
                 </div>
@@ -2206,8 +2206,8 @@ export default function AdminPanelPage() {
                   <thead>
                     <tr className="bg-slate-50/80 border-b border-slate-100 uppercase text-[9px] tracking-wider text-slate-400 font-black">
                       <th className="p-4 w-12 text-center">SNo</th>
-                      <th className="p-4">Category & Subcategories</th>
-                      <th className="p-4 text-center">Home Position (1–6)</th>
+                      <th className="p-4">Category &amp; Subcategories</th>
+                      <th className="p-4 text-center">Display Sequence Position</th>
                       <th className="p-4 text-center">Actions</th>
                     </tr>
                   </thead>
@@ -2248,12 +2248,13 @@ export default function AdminPanelPage() {
                                   : "border-slate-200 bg-slate-50 text-slate-400"
                                 }`}
                             >
-                              <option value={0}>— Not on Home —</option>
-                              {[1, 2, 3, 4, 5, 6].map(pos => {
+                              <option value={0}>— Default (Unranked) —</option>
+                              {Array.from({ length: Math.max(12, adminCategories.length + 3) }, (_, i) => i + 1).map((pos) => {
                                 const occupant = adminCategories.find(cat => cat.name !== c.name && cat.homePosition === pos);
+                                const isFeaturedHomeGrid = pos <= 6;
                                 return (
                                   <option key={pos} value={pos}>
-                                    Slot {pos}{occupant ? ` (replaces ${occupant.name})` : ""}
+                                    Position {pos}{isFeaturedHomeGrid ? " (Home Grid Card)" : ""}{occupant ? ` — replaces ${occupant.name}` : ""}
                                   </option>
                                 );
                               })}
@@ -2478,7 +2479,7 @@ export default function AdminPanelPage() {
                 <h3 className="text-lg font-bold text-slate-900">
                   {editingProduct ? "Edit Product Details" : "Add Product to Catalog"}
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">Configure hardware specifications, categories, and pricing index.</p>
+                <p className="text-xs text-slate-400 mt-0.5">Configure product specifications, categories, and pricing index.</p>
               </div>
 
               {/* Name */}
@@ -2487,7 +2488,7 @@ export default function AdminPanelPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. GaN Pro 120W Desktop Charger"
+                  placeholder="e.g. RAVTRON 8-in-1 Type-C Docking Station"
                   className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-slate-350"
                   value={productForm.name}
                   onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
@@ -3270,7 +3271,7 @@ export default function AdminPanelPage() {
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Description / Terms</label>
                 <input
                   type="text"
-                  placeholder="e.g. Valid on all GaN Chargers & Workstation Gear."
+                  placeholder="e.g. Valid on all Display Cables & Docking Stations."
                   className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5]"
                   value={couponForm.description}
                   onChange={(e) => setCouponForm({ ...couponForm, description: e.target.value })}
@@ -3684,7 +3685,7 @@ function HeroSlideEditor({
       disconnected: "/logo.png",
       connected: "/logo.png",
       productId: "p4",
-      tag1: "GaN Pro 65W", tag1Desc: "Fast Charging",
+      tag1: "4K Adapter", tag1Desc: "Ultra HD Signal",
       tag2: "Ring Webcam", tag2Desc: "4K Video Stream",
       tag3: "Power Cord", tag3Desc: "Heavy Duty"
     },

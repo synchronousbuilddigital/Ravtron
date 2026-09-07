@@ -151,7 +151,7 @@ export default function TermsAndConditionsPage() {
                   <ul className="space-y-1.5 text-xs text-amber-800">
                     <li className="flex items-center gap-2">
                       <Check className="w-3.5 h-3.5 text-amber-700 shrink-0" />
-                      <span>Always use products within designated voltage and wattage ratings specified on product boxes.</span>
+                      <span>Always use products within designated voltage and power specifications printed on product boxes.</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <Check className="w-3.5 h-3.5 text-amber-700 shrink-0" />

@@ -159,6 +159,9 @@ export function CartProvider({ children }) {
       localStorage.removeItem("powerhub_categories_cache");
     } catch (e) {}
     fetchCategories();
+    try {
+      window.dispatchEvent(new Event("ravtron_categories_change"));
+    } catch (e) {}
   };
   const refreshCoupons = () => fetchCoupons();
 
@@ -264,9 +267,20 @@ export function CartProvider({ children }) {
       }
     };
 
+    const handleCategoryChange = () => {
+      try {
+        localStorage.removeItem("powerhub_categories_cache");
+      } catch (e) {}
+      fetchCategories();
+    };
+
     window.addEventListener("ravtron_auth_change", handleAuthChange);
+    window.addEventListener("ravtron_categories_change", handleCategoryChange);
+    window.addEventListener("storage", handleCategoryChange);
     return () => {
       window.removeEventListener("ravtron_auth_change", handleAuthChange);
+      window.removeEventListener("ravtron_categories_change", handleCategoryChange);
+      window.removeEventListener("storage", handleCategoryChange);
     };
   }, []);
 

@@ -13,7 +13,7 @@ export default function BrandTrust() {
     "Surveillance Cables & PoE Switches",
     "Audio Video Extenders & Splitters",
     "USB Type-C Multiport Hubs",
-    "Workstation Hardware Accessories"
+    "Workstation Connectivity Solutions"
   ];
 
   return (

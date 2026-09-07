@@ -111,12 +111,12 @@ export default function SupportPage() {
     {
       category: "Warranty & Support",
       question: "How do I claim product warranty?",
-      answer: "All RAVTRON® hardware (cables, adapters, docking stations) is backed by a 1-year replacement warranty. You can register your product or submit a claim directly under the 'Warranty Claims' tab on this page."
+      answer: "All RAVTRON® products (cables, adapters, docking stations) are backed by a 1-year replacement warranty. You can register your product or submit a claim directly under the 'Warranty Claims' tab on this page."
     },
     {
       category: "Warranty & Support",
-      question: "My GaN charger is warm during operation. Is it normal?",
-      answer: "Yes, Gallium Nitride (GaN) chargers operate at much higher power densities, which can cause them to feel warm under full load. However, they include internal temperature monitoring and safety cut-off protection systems to ensure absolute safety."
+      question: "Are RAVTRON display adapters and docking stations plug-and-play compatible?",
+      answer: "Yes, all RAVTRON® display cables, video converters, and multiport docking stations are plug-and-play compatible with Windows, macOS, ChromeOS, and Android without requiring manual driver installations."
     },
     {
       category: "Payments",
@@ -636,7 +636,7 @@ export default function SupportPage() {
                 <div className="space-y-1 text-left">
                   <h4 className="text-sm font-black text-slate-900 uppercase tracking-wide">1-Year Replacement Warranty</h4>
                   <p className="text-[11px] md:text-xs text-slate-500 font-semibold leading-relaxed">
-                    All genuine RAVTRON® hardware accessories come with a 12-month manufacturer replacement warranty covering functional faults, internal component damage, or wiring failure. It does not cover accidental physical breaks or liquid damages.
+                    All genuine RAVTRON® products come with our official quality replacement guarantee covering functional performance, internal component integrity, and signal precision. It does not cover accidental physical breaks or liquid damages.
                   </p>
                 </div>
               </div>
@@ -649,7 +649,7 @@ export default function SupportPage() {
                   <div className="space-y-2">
                     <h3 className="text-xl font-bold text-slate-900 font-display">Warranty Claim Registered</h3>
                     <p className="text-xs text-slate-400 font-semibold max-w-sm mx-auto">
-                      Your warranty replacement claim has been registered. Our hardware diagnostics team will evaluate the details and email return instructions for the damaged unit.
+                      Your warranty replacement claim has been registered. Our product diagnostics team will evaluate the details and email return instructions for the damaged unit.
                     </p>
                   </div>
                   <button
@@ -798,7 +798,7 @@ export default function SupportPage() {
                     </div>
  
                     <div className="space-y-1.5">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Describe the hardware issue</label>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Describe the product issue</label>
                       <textarea
                         required
                         rows={3}

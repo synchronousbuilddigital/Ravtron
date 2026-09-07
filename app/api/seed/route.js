@@ -51,7 +51,7 @@ const initialMockOrders = [
         qty: 1
       },
       {
-        name: "GaN Pro 65W Triple Charger",
+        name: "RAVTRON 4K Ultra HD DisplayPort to HDMI Adapter",
         image: "/logo.png",
         price: 3999,
         qty: 1

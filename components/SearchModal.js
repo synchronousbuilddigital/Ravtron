@@ -91,7 +91,7 @@ export default function SearchModal() {
             <div>
               <h4 className="text-xs font-semibold text-[#1E293B]/40 uppercase tracking-wider mb-3">Popular Searches</h4>
               <div className="flex flex-wrap gap-2">
-                {["65W GaN", "Docking Stations", "MagSafe", "Webcam", "Cables"].map((tag) => (
+                {["Display Cables", "Docking Stations", "Converters", "Webcam", "CCTV Power Supply"].map((tag) => (
                   <button
                     key={tag}
                     onClick={() => setQuery(tag)}
@@ -152,7 +152,7 @@ export default function SearchModal() {
           ) : (
             <div className="text-center py-10">
               <p className="text-lg text-[#1E293B]/50 font-medium">No products found for "{query}"</p>
-              <p className="text-sm text-[#1E293B]/40 mt-1">Try searching for something else like "charger" or "cable"</p>
+              <p className="text-sm text-[#1E293B]/40 mt-1">Try searching for something else like "docking station" or "cable"</p>
             </div>
           )}
         </div>

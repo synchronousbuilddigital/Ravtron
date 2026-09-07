@@ -18,7 +18,13 @@ export async function GET() {
 
     // First request: connect to real database and cache the result
     await dbConnect();
-    const categories = await Category.find({}).sort({ name: 1 }).lean();
+    const rawCategories = await Category.find({}).lean();
+    const categories = rawCategories.sort((a, b) => {
+      const aPos = a.homePosition > 0 ? a.homePosition : 999;
+      const bPos = b.homePosition > 0 ? b.homePosition : 999;
+      if (aPos !== bPos) return aPos - bPos;
+      return (a.name || "").localeCompare(b.name || "");
+    });
     setCachedCategories(categories);
 
     return NextResponse.json(categories);
@@ -118,8 +124,8 @@ export async function PUT(request) {
       updateData.homePosition = pos;
       updateData.showOnHome = pos > 0;
 
-      // If assigning a real slot, clear it from any other category that already holds it
-      if (pos >= 1 && pos <= 6) {
+      // If assigning a real slot/position, clear it from any other category that already holds it
+      if (pos >= 1) {
         await Category.updateMany(
           { name: { $ne: name }, homePosition: pos },
           { $set: { homePosition: 0, showOnHome: false } }

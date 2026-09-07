@@ -9,8 +9,8 @@ export default function Testimonials() {
       name: "Aarav Mehta",
       initials: "AM",
       rating: 5,
-      text: "The GaN charger is a total lifesaver. It charges my MacBook Pro and iPhone simultaneously without breaking a sweat, and it fits into my pocket easily! The sand cream finish looks incredibly premium on my desk.",
-      product: "RAVTRON 65W GaN Wall Charger"
+      text: "The DisplayPort to HDMI adapter is a total lifesaver. It connects my 4K monitor effortlessly without any lag or frame drops, and the build quality feels super premium on my desk.",
+      product: "RAVTRON 4K Ultra HD DisplayPort to HDMI Adapter"
     },
     {
       name: "Priya Sharma",
@@ -23,8 +23,8 @@ export default function Testimonials() {
       name: "Rohan Das",
       initials: "RD",
       rating: 5,
-      text: "This display cable is amazing. Seeing the live charging wattage in real-time is fascinating. The braided fabric feels like it will last for ages, doesn't tangle at all.",
-      product: "RAVTRON Braided 100W Wattage Cable"
+      text: "This HDMI display cable is amazing. Ultra crisp 4K 60Hz display feed without any signal loss. The braided fabric feels like it will last for ages, doesn't tangle at all.",
+      product: "RAVTRON Ultra-Speed Braided 4K HDMI Cable"
     },
     {
       name: "Karan Johar",

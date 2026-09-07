@@ -607,7 +607,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="space-y-1">
                   <h4 className="text-sm font-bold text-slate-900">You haven't placed any orders yet</h4>
-                  <p className="text-xs text-slate-400 font-semibold">Your checkouts will display here once you buy adapters and chargers.</p>
+                  <p className="text-xs text-slate-400 font-semibold">Your checkouts will display here once you order RAVTRON products.</p>
                 </div>
                 <button
                   onClick={() => router.push("/shop")}
@@ -1084,7 +1084,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="bg-purple-50/70 border border-purple-200/60 rounded-xl p-3 text-[11px] text-purple-900 font-medium leading-relaxed">
-                ℹ️ Our hardware team will review your request within 24 hours and send return pickup instructions to your email ({returnOrderModal.customerEmail}).
+                ℹ️ Our product support team will review your request within 24 hours and send return pickup instructions to your email ({returnOrderModal.customerEmail}).
               </div>
 
               <div className="flex gap-3 pt-2">
