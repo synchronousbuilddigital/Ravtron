@@ -846,7 +846,7 @@ export default function PrivacyPolicyPage() {
                   <p className="text-xs font-bold text-slate-800 pt-1">Email:</p>
                   <a 
                     href="mailto:officerequirementsgurgaon@gmail.com"
-                    className="font-bold text-sm text-[#3674B5] hover:underline block"
+                    className="font-bold text-xs sm:text-sm text-[#3674B5] hover:underline whitespace-nowrap block"
                   >
                     officerequirementsgurgaon@gmail.com
                   </a>

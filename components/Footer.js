@@ -52,10 +52,10 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
 
         {/* Main Footer Links Block */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 md:gap-8 lg:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-12 gap-6 md:gap-8 lg:gap-6">
 
           {/* Brand Info Column */}
-          <div className="space-y-4 sm:col-span-2 lg:col-span-2 border-b border-[#1E293B]/10 lg:border-0 pb-6 lg:pb-0">
+          <div className="space-y-4 sm:col-span-2 md:col-span-3 lg:col-span-3 xl:col-span-3 border-b border-[#1E293B]/10 lg:border-0 pb-6 lg:pb-0">
             <Link href="/" className="flex items-center group">
               <img 
                 src="/logo.png" 
@@ -98,7 +98,7 @@ export default function Footer() {
           </div>
 
           {/* Shop Column */}
-          <div className="space-y-0 lg:space-y-4 border-b border-[#1E293B]/10 lg:border-0 pb-2 lg:pb-0">
+          <div className="space-y-0 lg:space-y-4 border-b border-[#1E293B]/10 lg:border-0 pb-2 lg:pb-0 sm:col-span-1 md:col-span-1 lg:col-span-2 xl:col-span-2">
             <button
               onClick={() => toggleSection("shop")}
               className="w-full flex items-center justify-between py-3 text-left lg:pointer-events-none lg:py-0 focus:outline-none"
@@ -127,7 +127,7 @@ export default function Footer() {
           </div>
 
           {/* Support Column */}
-          <div className="space-y-0 lg:space-y-4 border-b border-[#1E293B]/10 lg:border-0 pb-2 lg:pb-0">
+          <div className="space-y-0 lg:space-y-4 border-b border-[#1E293B]/10 lg:border-0 pb-2 lg:pb-0 sm:col-span-1 md:col-span-1 lg:col-span-2 xl:col-span-2">
             <button
               onClick={() => toggleSection("support")}
               className="w-full flex items-center justify-between py-3 text-left lg:pointer-events-none lg:py-0 focus:outline-none"
@@ -156,7 +156,7 @@ export default function Footer() {
           </div>
 
           {/* Legal Policies Column */}
-          <div className="space-y-0 lg:space-y-4 border-b border-[#1E293B]/10 lg:border-0 pb-2 lg:pb-0">
+          <div className="space-y-0 lg:space-y-4 border-b border-[#1E293B]/10 lg:border-0 pb-2 lg:pb-0 sm:col-span-1 md:col-span-1 lg:col-span-2 xl:col-span-2">
             <button
               onClick={() => toggleSection("legal")}
               className="w-full flex items-center justify-between py-3 text-left lg:pointer-events-none lg:py-0 focus:outline-none"
@@ -185,7 +185,7 @@ export default function Footer() {
           </div>
 
           {/* Company & Contact Column */}
-          <div className="space-y-0 lg:space-y-4 pb-2 lg:pb-0 min-w-0">
+          <div className="space-y-0 lg:space-y-4 pb-2 lg:pb-0 min-w-0 sm:col-span-2 md:col-span-1 lg:col-span-3 xl:col-span-3">
             <button
               onClick={() => toggleSection("contact")}
               className="w-full flex items-center justify-between py-3 text-left lg:pointer-events-none lg:py-0 focus:outline-none"
@@ -204,7 +204,7 @@ export default function Footer() {
                 <span className="text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-wide">Write to Us</span>
                 <a 
                   href="mailto:officerequirementsgurgaon@gmail.com" 
-                  className="hover:text-[#3674B5] transition-colors mt-0.5 break-all text-xs font-semibold leading-snug"
+                  className="hover:text-[#3674B5] transition-colors mt-0.5 whitespace-nowrap text-[11px] sm:text-xs md:text-xs xl:text-sm font-semibold leading-snug block"
                   title="officerequirementsgurgaon@gmail.com"
                 >
                   officerequirementsgurgaon@gmail.com
