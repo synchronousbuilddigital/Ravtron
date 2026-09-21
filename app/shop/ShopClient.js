@@ -398,14 +398,14 @@ function ShopContent() {
                     </div>
 
                     {/* Image Area */}
-                    <div className="relative aspect-square w-full rounded-xl sm:rounded-2xl bg-[#FFFFFF] overflow-hidden mt-2 mb-2 sm:mt-2.5 sm:mb-2.5 transition-colors duration-500 group-hover:bg-[#F8F9FA] flex items-center justify-center hover-lift-inner">
+                    <div className="relative aspect-square w-full rounded-xl sm:rounded-2xl bg-[#EAEAEA] overflow-hidden mt-2 mb-2 sm:mt-2.5 sm:mb-2.5 transition-colors duration-500 group-hover:bg-[#E2E2E2] flex items-center justify-center hover-lift-inner">
                       <div className="absolute inset-0 bg-gradient-to-tr from-[#1A1917]/0 to-[#1A1917]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none" />
                       <Image
                         src={product.image}
                         alt={product.name}
                         fill
                         sizes="(max-width: 640px) 150px, (max-width: 768px) 250px, 300px"
-                        className={`object-cover transition-all duration-500 group-hover:scale-106 group-hover:rotate-1 pointer-events-none ${typeof product.stock === "number" && product.stock <= 0 ? "grayscale opacity-75" : ""}`}
+                        className={`object-cover mix-blend-multiply transition-all duration-500 group-hover:scale-106 group-hover:rotate-1 pointer-events-none ${typeof product.stock === "number" && product.stock <= 0 ? "grayscale opacity-75" : ""}`}
                         style={{
                           filter: "drop-shadow(0 12px 20px rgba(26,25,23,0.06))"
                         }}

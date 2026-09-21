@@ -363,7 +363,7 @@ export default function ProductDetailPage({ params }) {
           <div className="w-full lg:w-1/2 bg-white border border-[#1E293B]/10 rounded-3xl md:rounded-[3rem] flex flex-col justify-between relative overflow-hidden shadow-sm min-h-[350px] sm:min-h-[500px] lg:min-h-[580px]">
 
             {/* Top Aspect-Square Image Cover Container */}
-            <div className="w-full aspect-square relative overflow-hidden bg-[#FFFFFF] group flex items-center justify-center p-6 md:p-10">
+            <div className="w-full aspect-square relative overflow-hidden bg-[#EAEAEA] group flex items-center justify-center p-6 md:p-10">
               {/* Ambient radial lighting glow */}
               <div
                 className="absolute -top-48 -left-48 w-[140%] h-[140%] rounded-full blur-3xl opacity-25 pointer-events-none"
@@ -401,7 +401,7 @@ export default function ProductDetailPage({ params }) {
                 <img
                   src={selectedImage || product.image || "/logo.png"}
                   alt={product.name}
-                  className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-103"
+                  className="max-h-full max-w-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-103"
                   style={{
                     filter: "drop-shadow(0 12px 24px rgba(26,25,23,0.06))"
                   }}
@@ -872,14 +872,14 @@ export default function ProductDetailPage({ params }) {
                   onClick={() => router.push(`/product/${p.id}`)}
                   className="group relative rounded-xl sm:rounded-3xl bg-white border border-[#1E293B]/10 p-2.5 sm:p-4.5 flex flex-col justify-between hover-lift transition-all duration-500 overflow-hidden cursor-pointer shadow-2xs w-full max-w-[300px] mx-auto"
                 >
-                  <div className="relative aspect-square w-full rounded-xl sm:rounded-2xl bg-[#FFFFFF] overflow-hidden mb-2 sm:mb-3 flex items-center justify-center">
+                  <div className="relative aspect-square w-full rounded-xl sm:rounded-2xl bg-[#EAEAEA] overflow-hidden mb-2 sm:mb-3 flex items-center justify-center">
                     <div className="absolute inset-0 bg-gradient-to-tr from-[#1A1917]/0 to-[#1A1917]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none" />
                     <Image
                       src={p.image}
                       alt={p.name}
                       fill
                       sizes="(max-width: 640px) 150px, (max-width: 768px) 250px, 300px"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="object-cover mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
                       style={{
                         filter: "drop-shadow(0 10px 15px rgba(26,25,23,0.06))"
                       }}
