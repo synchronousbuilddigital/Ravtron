@@ -23,8 +23,7 @@ import {
   X,
   ChevronRight,
   Search,
-  ArrowRight,
-  RotateCcw
+  ArrowRight
 } from "lucide-react";
 import SearchModal from "../../components/SearchModal";
 import CartDrawer from "../../components/CartDrawer";
@@ -257,61 +256,12 @@ export default function ProfilePage() {
     }
   };
 
-  // Return Request States & Handler
-  const [returnOrderModal, setReturnOrderModal] = useState(null);
-  const [returnReason, setReturnReason] = useState("Defective / Not Working");
-  const [returnComments, setReturnComments] = useState("");
-  const [isSubmittingReturn, setIsSubmittingReturn] = useState(false);
-
-  const handleOpenReturnModal = (order) => {
-    setReturnOrderModal(order);
-    setReturnReason("Defective / Not Working");
-    setReturnComments("");
-  };
-
-  const handleSubmitReturnRequest = async (e) => {
-    e.preventDefault();
-    if (!returnOrderModal) return;
-
-    setIsSubmittingReturn(true);
-    try {
-      const response = await fetch(`/api/orders/${returnOrderModal.id}/return`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reason: returnReason,
-          comments: returnComments
-        })
-      });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || "Failed to submit return request");
-      }
-
-      const updatedOrder = await response.json();
-      showToast("7-Day Return request submitted successfully!");
-
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.id === returnOrderModal.id
-            ? {
-                ...o,
-                status: "Return Requested",
-                statusColor: "text-purple-600 bg-purple-50",
-                returnRequest: updatedOrder.returnRequest,
-                trackingSteps: updatedOrder.trackingSteps
-              }
-            : o
-        )
-      );
-      setReturnOrderModal(null);
-    } catch (err) {
-      console.error("Return error:", err);
-      showToast(err.message || "Failed to submit return request.", "error");
-    } finally {
-      setIsSubmittingReturn(false);
-    }
+  const isOrderCancellable = (order) => {
+    if (!order || order.status === "Cancelled") return false;
+    const orderCreatedAt = order.createdAt ? new Date(order.createdAt).getTime() : new Date(order.date).getTime();
+    if (isNaN(orderCreatedAt)) return true;
+    const hoursElapsed = (Date.now() - orderCreatedAt) / (1000 * 60 * 60);
+    return hoursElapsed <= 24;
   };
 
   if (!user) {
@@ -573,21 +523,11 @@ export default function ProfilePage() {
                                 Track Package
                               </button>
 
-                              {/* 7-Day Return Product Action Button (Only after delivery) */}
-                              {order.status === "Delivered" && (
-                                <button
-                                  onClick={() => handleOpenReturnModal(order)}
-                                  className="px-3 py-1.5 rounded-lg border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 text-[10px] font-bold uppercase transition-all whitespace-nowrap flex items-center gap-1 cursor-pointer"
-                                >
-                                  <RotateCcw className="w-3 h-3" />
-                                  <span>Return Product</span>
-                                </button>
-                              )}
-
-                              {order.status !== "Cancelled" && order.status !== "Shipped" && order.status !== "Delivered" && order.status !== "Return Requested" && order.status !== "Return Approved" && (
+                              {isOrderCancellable(order) && (
                                 <button
                                   onClick={() => handleCancelOrder(order.id)}
-                                  className="px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50/50 hover:bg-rose-50 text-rose-600 text-[10px] font-bold uppercase transition-all"
+                                  className="px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50/50 hover:bg-rose-50 text-rose-600 text-[10px] font-bold uppercase transition-all cursor-pointer"
+                                  title="Cancel order (allowed within 24 hours of ordering)"
                                 >
                                   Cancel
                                 </button>
@@ -1031,82 +971,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* 7-DAY RETURN REQUEST MODAL */}
-      {returnOrderModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 w-full max-w-md shadow-2xl relative space-y-5 animate-fade-in">
-            <button
-              onClick={() => setReturnOrderModal(null)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
 
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-purple-100 border border-purple-200 text-purple-600 flex items-center justify-center">
-                <RotateCcw className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-display font-black text-base text-slate-900">7-Day Return Request</h3>
-                <p className="text-xs font-semibold text-slate-500">Order Ref: <span className="font-bold text-slate-900">{returnOrderModal.id}</span></p>
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmitReturnRequest} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">
-                  Reason for Return
-                </label>
-                <select
-                  value={returnReason}
-                  onChange={(e) => setReturnReason(e.target.value)}
-                  className="w-full bg-[#F8F9FA] border border-slate-200 rounded-xl px-3.5 py-3 text-xs font-bold text-slate-800 outline-none focus:border-[#3674B5]"
-                >
-                  <option value="Defective / Not Working">⚡ Defective / Not Working</option>
-                  <option value="Damaged in Transit">📦 Damaged in Transit</option>
-                  <option value="Wrong Item Received">🔁 Wrong Item Received</option>
-                  <option value="Size / Specification Mismatch">📏 Size / Specification Mismatch</option>
-                  <option value="Changed Mind / No Longer Needed">💡 Changed Mind / No Longer Needed</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">
-                  Additional Details / Issue Description
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="Describe the issue or reason for replacement..."
-                  className="w-full bg-[#F8F9FA] border border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#3674B5]"
-                  value={returnComments}
-                  onChange={(e) => setReturnComments(e.target.value)}
-                />
-              </div>
-
-              <div className="bg-purple-50/70 border border-purple-200/60 rounded-xl p-3 text-[11px] text-purple-900 font-medium leading-relaxed">
-                ℹ️ Our product support team will review your request within 24 hours and send return pickup instructions to your email ({returnOrderModal.customerEmail}).
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={isSubmittingReturn}
-                  className="flex-1 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-extrabold uppercase tracking-wider transition-all shadow-xs disabled:opacity-50 cursor-pointer"
-                >
-                  {isSubmittingReturn ? "Submitting..." : "Submit Return Request"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setReturnOrderModal(null)}
-                  className="px-4 py-3 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-100"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       <SearchModal />
     </div>

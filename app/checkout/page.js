@@ -72,7 +72,7 @@ export default function CheckoutPage() {
   });
 
   const [deliveryPref, setDeliveryPref] = useState("standard"); // "standard" or "express"
-  const [paymentMethod, setPaymentMethod] = useState("card"); // "card", "upi", "netbanking", "cod"
+  const [paymentMethod, setPaymentMethod] = useState("card"); // "card", "upi", "netbanking"
 
   // Card Inputs
   const [cardForm, setCardForm] = useState({
@@ -461,67 +461,6 @@ export default function CheckoutPage() {
     });
   };
 
-  // ─── COD: submit order directly without Razorpay ─────────────────────────
-  const handleCODOrder = async () => {
-    setIsProcessing(true);
-    setPaymentError("");
-
-    const orderId = "RVT-" + Math.floor(10000 + Math.random() * 90000) + "-IN";
-    const orderPayload = {
-      id: orderId,
-      date: new Date().toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" }),
-      status: "Order Placed",
-      statusColor: "text-amber-500 bg-amber-50",
-      total: grandTotal,
-      savings: discount,
-      coupon: coupon || "",
-      customerName: contactForm.name,
-      customerEmail: contactForm.email,
-      customerPhone: contactForm.phone,
-      shippingAddress: shippingForm,
-      deliveryPref,
-      paymentMethod: "COD",
-      paymentStatus: "cod",
-      items: cart.map(item => ({
-        productId: item.id,
-        selectedSize: item.selectedSize || null,
-        name: item.name,
-        image: item.image,
-        price: item.price,
-        qty: item.quantity
-      })),
-      trackingSteps: [
-        { title: "Order Placed", date: new Date().toLocaleString(), done: true },
-        { title: "Packed & Verified", date: "Pending", done: false },
-        { title: "Shipped", date: "Pending", done: false },
-        { title: "In Transit", date: "Pending", done: false },
-        { title: "Delivered", date: "Pending", done: false }
-      ]
-    };
-
-    try {
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderPayload)
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to place COD order");
-      localStorage.setItem("ravtron_address", JSON.stringify(shippingForm));
-      setCreatedOrder(data);
-      setPaymentResult("success");
-      clearCart();
-      showToast("Order placed successfully! Pay on delivery.", "success");
-    } catch (err) {
-      console.error("[COD] Order error:", err);
-      setPaymentError(err.message || "Failed to place order. Please try again.");
-      setPaymentResult("failure");
-      showToast(err.message || "Failed to place order", "error");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   // ─── Razorpay: open popup and handle real payment ─────────────────────────
   const handleRazorpayPayment = async () => {
     setIsProcessing(true);
@@ -678,15 +617,7 @@ export default function CheckoutPage() {
     if (!validateStep1()) { setCurrentStep(1); return; }
     if (!validateStep2()) { setCurrentStep(2); return; }
 
-    if (paymentMethod === "upi") {
-      // Note: UPI is handled inside the Razorpay popup — no pre-validation needed here
-    }
-
-    if (paymentMethod === "cod") {
-      handleCODOrder();
-    } else {
-      handleRazorpayPayment();
-    }
+    handleRazorpayPayment();
   };
 
   const resetFailureState = () => {
@@ -1226,7 +1157,7 @@ export default function CheckoutPage() {
                   <div className="w-8 h-8 rounded-full bg-[#3674B5]/10 text-[#3674B5] flex items-center justify-center font-display font-black text-xs">3</div>
                   <div>
                     <h3 className={`font-display font-black text-base md:text-lg text-[#1E293B] ${currentStep < 3 ? "text-slate-400" : ""}`}>Payment Information</h3>
-                    <p className="text-[10px] md:text-xs font-semibold text-slate-500">Choose from secure banking or Cash on Delivery channels.</p>
+                    <p className="text-[10px] md:text-xs font-semibold text-slate-500">100% Secure encrypted online payment via Razorpay.</p>
                   </div>
                 </div>
 
@@ -1234,19 +1165,18 @@ export default function CheckoutPage() {
                   /* Expanded Inputs Form */
                   <div className="space-y-6">
                     {/* Horizontal Payment Selectors */}
-                    <div className="grid grid-cols-4 gap-2 border-b border-[#1E293B]/5 pb-4">
+                    <div className="grid grid-cols-3 gap-2.5 border-b border-[#1E293B]/5 pb-4">
                       {[
                         { id: "card", label: "Card", desc: "Credit / Debit" },
-                        { id: "upi", label: "UPI", desc: "Instant Pay" },
-                        { id: "netbanking", label: "Banking", desc: "Net Banking" },
-                        { id: "cod", label: "COD", desc: "Pay on Arrival" }
+                        { id: "upi", label: "UPI", desc: "Instant Pay / QR" },
+                        { id: "netbanking", label: "Banking", desc: "Net Banking / Wallets" }
                       ].map((pay) => (
                         <button
                           key={pay.id}
                           type="button"
                           onClick={() => setPaymentMethod(pay.id)}
                           className={`px-2.5 py-3 rounded-xl border transition-all text-center flex flex-col justify-center items-center gap-0.5 ${paymentMethod === pay.id
-                              ? "bg-[#3674B5] text-white border-[#3674B5]"
+                              ? "bg-[#3674B5] text-white border-[#3674B5] shadow-xs"
                               : "bg-[#F8F9FA] text-slate-700 border-[#1E293B]/10 hover:border-[#1E293B]/25 hover:bg-slate-50"
                             }`}
                         >
@@ -1256,33 +1186,19 @@ export default function CheckoutPage() {
                       ))}
                     </div>
 
-                    {/* Conditional Info Panels — actual entry happens inside Razorpay popup */}
+                    {/* Razorpay Trust Information Panel */}
                     <div className="pt-2 animate-fade-in-up">
-                      {(paymentMethod === "card" || paymentMethod === "upi" || paymentMethod === "netbanking") && (
-                        <div className="bg-[#3674B5]/5 border border-[#3674B5]/20 rounded-2xl p-4 max-w-lg flex items-start gap-3">
-                          <ShieldCheck className="w-5 h-5 text-[#3674B5] mt-0.5 flex-shrink-0" />
-                          <div className="space-y-1">
-                            <p className="text-xs font-extrabold text-[#1E293B]">
-                              Secured by Razorpay
-                            </p>
-                            <p className="text-[10px] font-semibold text-slate-500 leading-relaxed">
-                              Your payment details are entered securely inside the Razorpay checkout window — we never see or store your card or UPI credentials. Supports Cards, UPI, Net Banking, and Wallets.
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      {paymentMethod === "cod" && (
-                        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 max-w-lg space-y-1.5 text-left">
-                          <div className="flex items-center gap-2 text-amber-700 font-bold text-xs">
-                            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                            <span>Cash on Delivery — No online payment required</span>
-                          </div>
-                          <p className="text-[10px] text-amber-700 font-semibold leading-relaxed">
-                            Your order will be dispatched and payment collected at the time of delivery. Please keep the exact payable amount ready.
+                      <div className="bg-[#3674B5]/5 border border-[#3674B5]/20 rounded-2xl p-4 max-w-lg flex items-start gap-3">
+                        <ShieldCheck className="w-5 h-5 text-[#3674B5] mt-0.5 flex-shrink-0" />
+                        <div className="space-y-1">
+                          <p className="text-xs font-extrabold text-[#1E293B]">
+                            Secured by Razorpay
+                          </p>
+                          <p className="text-[10px] font-semibold text-slate-500 leading-relaxed">
+                            Your payment details are entered securely inside the official Razorpay checkout window — we never see or store your card or UPI credentials. Supports Cards, UPI, Net Banking, and Wallets.
                           </p>
                         </div>
-                      )}
+                      </div>
                     </div>
 
                     <div className="flex justify-between items-center pt-2 border-t border-[#1E293B]/5">
@@ -1303,7 +1219,7 @@ export default function CheckoutPage() {
                         {isProcessing ? (
                           <><Loader2 className="w-3.5 h-3.5 animate-spin" /><span>Processing...</span></>
                         ) : (
-                          <><Lock className="w-3.5 h-3.5" /><span>{paymentMethod === "cod" ? "Place Order" : "Pay with Razorpay"}</span></>
+                          <><Lock className="w-3.5 h-3.5" /><span>Pay with Razorpay</span></>
                         )}
                       </button>
                     </div>
@@ -1503,20 +1419,7 @@ export default function CheckoutPage() {
 
       </main>
 
-      {/* COD Processing Spinner — only shows briefly while placing COD order */}
-      {isProcessing && paymentMethod === "cod" && paymentResult === null && (
-        <div className="fixed inset-0 z-[2000] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white border border-[#1E293B]/10 p-8 shadow-2xl text-center space-y-5 animate-fade-in-up">
-            <div className="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto">
-              <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
-            </div>
-            <div>
-              <h3 className="font-display font-black text-lg text-[#1E293B]">Placing Your Order</h3>
-              <p className="text-xs font-semibold text-slate-500 mt-1">Saving your order to our system...</p>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Payment Failure Dialog */}
       {paymentResult === "failure" && (

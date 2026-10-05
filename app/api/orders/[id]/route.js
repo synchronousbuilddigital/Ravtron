@@ -3,7 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Order from "@/models/Order";
 import { verifyAdmin, verifyUser } from "@/lib/auth";
 import { clearOrdersCache } from "@/lib/cache";
-import { sendReturnStatusEmail, sendShipmentNotificationEmail } from "@/lib/email";
+import { sendShipmentNotificationEmail } from "@/lib/email";
 import { verifyCsrfOrigin } from "@/lib/csrf";
 
 export async function PUT(request, { params }) {
@@ -26,7 +26,6 @@ export async function PUT(request, { params }) {
     if (body.trackingSteps !== undefined)    allowedUpdates.trackingSteps = body.trackingSteps;
     if (body.trackingId !== undefined)       allowedUpdates.trackingId = body.trackingId;
     if (body.courier !== undefined)          allowedUpdates.courier = body.courier;
-    if (body.returnRequest !== undefined)    allowedUpdates.returnRequest = body.returnRequest;
     if (body.adminNote !== undefined)        allowedUpdates.adminNote = body.adminNote;
 
     if (Object.keys(allowedUpdates).length === 0) {
@@ -48,15 +47,6 @@ export async function PUT(request, { params }) {
     if (body.status === "Shipped") {
       sendShipmentNotificationEmail(updatedOrder)
         .catch((err) => console.error("Shipment notification email error:", err));
-    }
-
-    // Check if return status was updated (e.g. Approved or Declined)
-    if (body.returnRequest && body.returnRequest.status) {
-      const status = body.returnRequest.status;
-      if (status === "Approved" || status === "Declined") {
-        sendReturnStatusEmail(updatedOrder, status, body.returnRequest.adminNote || "")
-          .catch((err) => console.error("Return notification email error:", err));
-      }
     }
 
     return NextResponse.json(updatedOrder);

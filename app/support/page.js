@@ -99,14 +99,14 @@ export default function SupportPage() {
       answer: "Standard delivery takes between 2 to 5 business days for major metropolitan areas, and 5 to 7 days for remote locations. Express shipping takes 1 to 2 business days."
     },
     {
-      category: "Returns & Refunds",
-      question: "What is your returns policy?",
-      answer: "We offer a 7-day hassle-free replacement or return policy for any manufacturing defects or transit damages. Items must be returned in their original packaging with all included accessories."
+      category: "Cancellations & Policy",
+      question: "Do you accept product returns or exchanges?",
+      answer: "We maintain a strict No Returns & No Exchanges policy once an order has been shipped and delivered, as all accessories undergo comprehensive factory inspection prior to dispatch. However, all purchases are protected by our 1-Year Manufacturer Warranty."
     },
     {
-      category: "Returns & Refunds",
-      question: "How long does a refund take to process?",
-      answer: "Once we receive and inspect your returned item, refunds are processed within 24 to 48 hours and credited back to your original payment method (Bank account or UPI) within 5 to 7 business days."
+      category: "Cancellations & Policy",
+      question: "Can I cancel my order?",
+      answer: "Yes, you can cancel your order directly from your Account Profile within 24 hours of placing it for an immediate 100% full refund back to your original payment method."
     },
     {
       category: "Warranty & Support",

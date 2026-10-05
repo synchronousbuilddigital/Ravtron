@@ -1444,63 +1444,7 @@ export default function AdminPanelPage() {
               {/* RIGHT SIDE (5 COLS): RETURN REQUESTS & LIVE ORDERS STREAM */}
               <div className="lg:col-span-5 space-y-6">
 
-                {/* 7-Day Return Requests Alert Section */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <RotateCcw className="w-4 h-4 text-purple-600" />
-                      <h3 className="font-display font-black text-base text-slate-900">
-                        Return Requests ({adminOrders.filter(o => o.status === "Return Requested").length})
-                      </h3>
-                    </div>
-                  </div>
 
-                  {adminOrders.filter(o => o.status === "Return Requested").length > 0 ? (
-                    <div className="space-y-3">
-                      {adminOrders
-                        .filter(o => o.status === "Return Requested")
-                        .map((order) => (
-                          <div key={order.id} className="bg-purple-50/80 border border-purple-200/80 rounded-2xl p-4 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-xs text-purple-900">{order.id}</span>
-                              <span className="text-[10px] font-black text-purple-700 uppercase bg-purple-100 px-2 py-0.5 rounded-md">
-                                Action Required
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-purple-800 font-semibold">
-                              Customer: <strong>{order.customerName}</strong> ({order.customerEmail})
-                            </p>
-                            {order.returnRequest && (
-                              <div className="bg-white/80 p-2.5 rounded-xl text-[10px] text-purple-950 space-y-1">
-                                <p><strong>Reason:</strong> {order.returnRequest.reason}</p>
-                                {order.returnRequest.comments && (
-                                  <p className="italic text-purple-700">"{order.returnRequest.comments}"</p>
-                                )}
-                              </div>
-                            )}
-                            <div className="flex gap-2 pt-1">
-                              <button
-                                onClick={() => handleUpdateOrderStatus(order.id, "Return Approved")}
-                                className="flex-1 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-extrabold uppercase transition-all cursor-pointer"
-                              >
-                                Approve Return
-                              </button>
-                              <button
-                                onClick={() => handleUpdateOrderStatus(order.id, "Return Declined")}
-                                className="flex-1 py-1.5 rounded-xl border border-purple-300 text-purple-800 hover:bg-purple-100 text-[10px] font-extrabold uppercase transition-all cursor-pointer"
-                              >
-                                Decline
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  ) : (
-                    <div className="bg-white border border-slate-200/80 rounded-2xl p-4 text-center">
-                      <p className="text-xs font-semibold text-slate-400">No pending return requests from customers.</p>
-                    </div>
-                  )}
-                </div>
 
                 {/* Recent Orders Stream */}
                 <div className="space-y-3">
@@ -1899,17 +1843,6 @@ export default function AdminPanelPage() {
                                 {item.name} <span className="font-bold text-slate-400">x{item.qty}</span>
                               </p>
                             ))}
-                            {order.returnRequest && (
-                              <div className="mt-1.5 p-1.5 bg-purple-50 border border-purple-200 rounded-lg text-[9px] text-purple-900 font-semibold space-y-0.5">
-                                <span className="font-bold uppercase tracking-wider text-purple-700 block">↩ Return Reason:</span>
-                                <span>{order.returnRequest.reason}</span>
-                                {order.returnRequest.comments && (
-                                  <p className="text-[9px] text-purple-700 italic border-t border-purple-200/50 pt-0.5 mt-0.5">
-                                    "{order.returnRequest.comments}"
-                                  </p>
-                                )}
-                              </div>
-                            )}
                           </div>
                         </td>
                         <td className="p-4 font-bold text-[#3674B5]">₹{order.total.toLocaleString()}</td>
@@ -1930,9 +1863,6 @@ export default function AdminPanelPage() {
                               <option value="Shipped">Shipped</option>
                               <option value="In Transit">In Transit</option>
                               <option value="Delivered">Delivered</option>
-                              <option value="Return Requested">Return Requested</option>
-                              <option value="Return Approved">Return Approved</option>
-                              <option value="Return Declined">Return Declined</option>
                               <option value="Cancelled">Cancelled</option>
                             </select>
                           </div>

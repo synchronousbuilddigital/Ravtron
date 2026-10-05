@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Order from "@/models/Order";
+import Product from "@/models/Product";
 import { verifyUser, verifyAdmin } from "@/lib/auth";
+import { clearOrdersCache } from "@/lib/cache";
 
 export async function POST(request, { params }) {
   try {
@@ -20,12 +22,39 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: "Unauthorized access: Mismatching session" }, { status: 403 });
     }
 
-    // Business logic: Cannot cancel shipped, delivered, or already cancelled orders
+    // Business logic: Cannot cancel already cancelled orders
     if (order.status === "Cancelled") {
       return NextResponse.json({ error: "Order is already cancelled" }, { status: 400 });
     }
-    if (order.status === "Shipped" || order.status === "Delivered") {
-      return NextResponse.json({ error: `Order cannot be cancelled because its status is already ${order.status}` }, { status: 400 });
+
+    // Cancellation window: user can only cancel within 24 hours of placement
+    if (!isAdmin) {
+      const orderCreatedAt = order.createdAt ? new Date(order.createdAt).getTime() : new Date(order.date).getTime();
+      if (!isNaN(orderCreatedAt)) {
+        const hoursElapsed = (Date.now() - orderCreatedAt) / (1000 * 60 * 60);
+        if (hoursElapsed > 24) {
+          return NextResponse.json(
+            { error: "Orders can only be cancelled within 24 hours of placement." },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
+    // Restore product stock on cancellation
+    if (Array.isArray(order.items)) {
+      for (const item of order.items) {
+        if (item.productId && item.qty) {
+          try {
+            await Product.updateOne(
+              { id: item.productId },
+              { $inc: { stock: item.qty } }
+            );
+          } catch (stockErr) {
+            console.warn(`Failed to restore stock for ${item.productId}:`, stockErr.message);
+          }
+        }
+      }
     }
 
     order.status = "Cancelled";
@@ -45,6 +74,7 @@ export async function POST(request, { params }) {
 
     order.trackingSteps = formattedSteps;
     await order.save();
+    clearOrdersCache();
 
     return NextResponse.json(order);
   } catch (error) {

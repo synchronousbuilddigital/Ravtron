@@ -15,7 +15,7 @@ export default function Footer() {
 
   const supportLinks = [
     { name: "Track Order", href: "/support?tab=track" },
-    { name: "Returns & Exchanges", href: "/refund-policy" },
+    { name: "Shipping & Delivery", href: "/shipping-policy" },
     { name: "Warranty Claim", href: "/support?tab=warranty" },
     { name: "Frequently Asked Questions", href: "/support?tab=faq" },
     { name: "Contact Support Team", href: "/support?tab=contact" }
@@ -25,7 +25,7 @@ export default function Footer() {
     { name: "Privacy Policy", href: "/privacy-policy" },
     { name: "Terms & Conditions", href: "/terms-and-conditions" },
     { name: "Shipping & Delivery Policy", href: "/shipping-policy" },
-    { name: "Refund & Return Policy", href: "/refund-policy" }
+    { name: "No Return & Refund Policy", href: "/refund-policy" }
   ];
 
   const socialLinks = [

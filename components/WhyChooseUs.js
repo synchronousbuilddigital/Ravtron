@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Zap, Shield, Truck, RotateCcw, Award, Headphones } from "lucide-react";
+import { Zap, Shield, Truck, CheckCircle2, Award, Headphones } from "lucide-react";
 
 export default function WhyChooseUs() {
   const [activeIndex, setActiveIndex] = React.useState(0);
@@ -33,9 +33,9 @@ export default function WhyChooseUs() {
       description: "Get your essential connectivity gear fast. Same-day dispatch with express air shipping to all major Indian cities within 48 hours."
     },
     {
-      icon: RotateCcw,
-      title: "30-Day Easy Returns",
-      description: "Shop with absolute peace of mind. Not completely satisfied? Enjoy hassle-free returns with direct doorstep pickup and instant refunds."
+      icon: CheckCircle2,
+      title: "100% Quality Inspected & Tested",
+      description: "Every single accessory undergoes rigorous multi-point testing before packaging and dispatch to ensure zero-defect reliability."
     },
     {
       icon: Award,
