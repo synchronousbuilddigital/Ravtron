@@ -323,20 +323,68 @@ export default function CheckoutPage() {
   };
 
   const validateStep2 = () => {
-    if (!shippingForm.street.trim()) {
-      showToast("Please enter your street address.", "error");
+    // Case 1: User is filling in a new address form
+    if (isAddingNewAddress) {
+      if (!newAddressForm.street || !newAddressForm.street.trim()) {
+        showToast("Please enter your street address.", "error");
+        return false;
+      }
+      if (!newAddressForm.city || !newAddressForm.city.trim()) {
+        showToast("Please enter your city.", "error");
+        return false;
+      }
+      if (!newAddressForm.state || !newAddressForm.state.trim()) {
+        showToast("Please enter your state.", "error");
+        return false;
+      }
+      const pinDigits = (newAddressForm.zip || "").replace(/\D/g, "");
+      if (!newAddressForm.zip || !newAddressForm.zip.trim() || pinDigits.length < 5) {
+        showToast("Please enter a valid postal code.", "error");
+        return false;
+      }
+      if (newAddressForm.phone && newAddressForm.phone.replace(/\D/g, "").length < 10) {
+        showToast("Please enter a valid 10-digit phone number.", "error");
+        return false;
+      }
+
+      // Auto-save this address and select it for checkout
+      const newId = "addr_" + Date.now();
+      const newAddrObj = {
+        id: newId,
+        tag: newAddressForm.tag || "Home",
+        name: newAddressForm.name || contactForm.name || currentUser?.name || "Customer",
+        phone: newAddressForm.phone || contactForm.phone || "",
+        street: newAddressForm.street.trim(),
+        city: newAddressForm.city.trim(),
+        state: newAddressForm.state.trim(),
+        zip: newAddressForm.zip.trim(),
+        country: newAddressForm.country || "India"
+      };
+
+      const updatedList = [...savedAddresses, newAddrObj];
+      setSavedAddresses(updatedList);
+      localStorage.setItem("ravtron_saved_addresses", JSON.stringify(updatedList));
+
+      handleSelectSavedAddress(newAddrObj);
+      setIsAddingNewAddress(false);
+      return true;
+    }
+
+    // Case 2: User has a saved address selected
+    if (!shippingForm.street || !shippingForm.street.trim()) {
+      showToast("Please select or enter a delivery address.", "error");
       return false;
     }
-    if (!shippingForm.city.trim()) {
+    if (!shippingForm.city || !shippingForm.city.trim()) {
       showToast("Please enter your city.", "error");
       return false;
     }
-    if (!shippingForm.state.trim()) {
+    if (!shippingForm.state || !shippingForm.state.trim()) {
       showToast("Please enter your state.", "error");
       return false;
     }
-    const pinDigits = shippingForm.zip.replace(/\D/g, "");
-    if (!shippingForm.zip.trim() || pinDigits.length < 5) {
+    const pinDigits = (shippingForm.zip || "").replace(/\D/g, "");
+    if (!shippingForm.zip || !shippingForm.zip.trim() || pinDigits.length < 5) {
       showToast("Please enter a valid postal code.", "error");
       return false;
     }
