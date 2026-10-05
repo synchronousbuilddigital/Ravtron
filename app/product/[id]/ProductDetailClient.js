@@ -359,30 +359,23 @@ export default function ProductDetailPage({ params }) {
         {/* Two-Column Details Showcase */}
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-start">
 
-          {/* Left Column: Image Gallery Showcase (Full-frame cover layout) */}
-          <div className="w-full lg:w-1/2 bg-white border border-[#1E293B]/10 rounded-3xl md:rounded-[3rem] flex flex-col justify-between relative overflow-hidden shadow-sm min-h-[350px] sm:min-h-[500px] lg:min-h-[580px]">
+          {/* Left Column: Image Gallery Showcase (White Outer Frame with Inner Rounded Grey Square) */}
+          <div className="w-full lg:w-1/2 bg-white border border-[#1E293B]/10 rounded-3xl md:rounded-[2.5rem] p-4 sm:p-6 md:p-8 flex flex-col justify-between relative shadow-sm">
 
-            {/* Top Aspect-Square Image Cover Container */}
-            <div className="w-full aspect-square relative overflow-hidden bg-[#EAEAEA] group flex items-center justify-center p-6 md:p-10">
-              {/* Ambient radial lighting glow */}
-              <div
-                className="absolute -top-48 -left-48 w-[140%] h-[140%] rounded-full blur-3xl opacity-25 pointer-events-none"
-                style={{
-                  background: `radial-gradient(circle, ${brandAccent} 0%, transparent 70%)`
-                }}
-              />
-
+            {/* Inner Rounded Grey Square Container */}
+            <div className="w-full aspect-square relative rounded-2xl md:rounded-3xl bg-[#EAEAEA] overflow-hidden group flex items-center justify-center p-4 sm:p-6 md:p-8">
+              
               {/* Float Wishlist Trigger */}
               <button
                 onClick={() => toggleWishlist(product)}
-                className={`absolute top-4 left-4 md:top-6 md:left-6 z-20 p-2.5 md:p-3.5 rounded-full border backdrop-blur-xs transition-all duration-300 hover:scale-110 active:scale-95 shadow-xs ${isWishlisted
+                className={`absolute top-3 left-3 sm:top-4 sm:left-4 z-20 p-2.5 sm:p-3 rounded-full border backdrop-blur-xs transition-all duration-300 hover:scale-110 active:scale-95 shadow-xs ${isWishlisted
                     ? "bg-[#3674B5]/15 border-[#3674B5]/40 text-[#3674B5]"
-                    : "bg-white/80 border-[#1E293B]/10 text-[#1E293B]/40 hover:text-[#1E293B] hover:bg-white"
+                    : "bg-white/90 border-[#1E293B]/10 text-[#1E293B]/40 hover:text-[#1E293B] hover:bg-white"
                   }`}
                 aria-label="Add to Wishlist"
               >
                 <svg
-                  className="w-4.5 h-4.5 md:w-5.5 md:h-5.5"
+                  className="w-4.5 h-4.5 sm:w-5 sm:h-5"
                   fill={isWishlisted ? "currentColor" : "none"}
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -396,32 +389,29 @@ export default function ProductDetailPage({ params }) {
                 </svg>
               </button>
 
-              {/* Full-Frame Edge-to-Edge Image */}
+              {/* Product Image inside rounded grey square */}
               {(selectedImage || product.image) ? (
                 <img
                   src={selectedImage || product.image || "/logo.png"}
                   alt={product.name}
-                  className="max-h-full max-w-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-103"
+                  className="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
                   style={{
-                    filter: "drop-shadow(0 12px 24px rgba(26,25,23,0.06))"
+                    filter: "drop-shadow(0 8px 16px rgba(26,25,23,0.06))"
                   }}
                 />
               ) : null}
             </div>
 
-            {/* Bottom Controls Area (Padded separately) */}
-            <div className="p-4 md:p-8 flex flex-col items-center w-full bg-white">
-              <div className="w-full h-[1px] bg-[#3674B5]/5 mb-4 md:mb-6" />
-
-              {/* Thumbnails list */}
-              {product.gallery && product.gallery.filter(Boolean).length > 0 && (
+            {/* Bottom Controls Area (Thumbnails) */}
+            {product.gallery && product.gallery.filter(Boolean).length > 0 && (
+              <div className="pt-4 sm:pt-6 flex flex-col items-center w-full">
                 <div className="flex justify-center gap-3 md:gap-4 w-full">
                   {product.gallery.filter(Boolean).map((imgUrl, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImage(imgUrl)}
-                      className={`w-14 h-14 md:w-20 md:h-20 rounded-xl md:rounded-2xl border-2 overflow-hidden bg-[#FFFFFF] p-1.5 md:p-2 flex items-center justify-center transition-all duration-300 ${selectedImage === imgUrl
-                          ? "border-[#3674B5] scale-105 shadow-xs bg-white"
+                      className={`w-14 h-14 md:w-20 md:h-20 rounded-xl md:rounded-2xl border-2 overflow-hidden bg-[#EAEAEA] p-1.5 md:p-2 flex items-center justify-center transition-all duration-300 ${selectedImage === imgUrl
+                          ? "border-[#3674B5] scale-105 shadow-xs"
                           : "border-transparent opacity-60 hover:opacity-100 hover:scale-102"
                         }`}
                     >
@@ -433,8 +423,8 @@ export default function ProductDetailPage({ params }) {
                     </button>
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Right Column: Detailed Context Info */}
