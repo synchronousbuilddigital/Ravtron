@@ -9,8 +9,8 @@ import { calculateVerifiedCouponDiscount } from "@/lib/couponSecurity";
 
 // Helper to safely initialize Razorpay without crashing build evaluation
 function getRazorpayInstance() {
-  const key_id = process.env.RAZORPAY_KEY_ID || "rzp_test_placeholder";
-  const key_secret = process.env.RAZORPAY_KEY_SECRET || "placeholder_secret";
+  const key_id = (process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_placeholder").trim();
+  const key_secret = (process.env.RAZORPAY_KEY_SECRET || "placeholder_secret").trim();
   return new Razorpay({ key_id, key_secret });
 }
 
@@ -107,8 +107,8 @@ export async function POST(request) {
 
     // SECURITY FIX: Validate key format (must start with rzp_test_ or rzp_live_)
     // This catches misconfigured keys faster than waiting for Razorpay's API error.
-    const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
-    const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
+    const razorpayKeyId = (process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "").trim();
+    const razorpayKeySecret = (process.env.RAZORPAY_KEY_SECRET || "").trim();
 
     if (
       !razorpayKeyId ||
