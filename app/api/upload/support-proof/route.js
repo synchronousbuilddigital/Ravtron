@@ -105,7 +105,7 @@ export async function POST(request) {
   } catch (error) {
     console.error("POST /api/upload/support-proof error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to process proof upload." },
+      { error: process.env.NODE_ENV === "production" ? "Failed to process proof upload." : (error.message || "Failed to process proof upload.") },
       { status: 500 }
     );
   }

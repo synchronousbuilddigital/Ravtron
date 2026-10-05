@@ -97,6 +97,9 @@ export async function POST(request) {
 
   } catch (error) {
     logSecurityEvent("VERIFY_OTP_ERROR", { error: error.message });
-    return NextResponse.json({ error: error.message || "Failed to verify code." }, { status: 500 });
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to verify code. Please try again." : (error.message || "Failed to verify code.") },
+      { status: 500 }
+    );
   }
 }

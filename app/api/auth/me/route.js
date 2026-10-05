@@ -10,6 +10,9 @@ export async function GET() {
     return NextResponse.json({ isLoggedIn: true, user: session });
   } catch (error) {
     console.error("GET /api/auth/me error:", error);
-    return NextResponse.json({ isLoggedIn: false, user: null, error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { isLoggedIn: false, user: null, error: process.env.NODE_ENV === "production" ? "Authentication check failed" : (error.message || "Authentication check failed") },
+      { status: 500 }
+    );
   }
 }

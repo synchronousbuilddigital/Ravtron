@@ -187,6 +187,10 @@ export async function GET(request) {
       }
     });
   } catch (error) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    console.error("Seed error:", error);
+    return NextResponse.json(
+      { success: false, error: process.env.NODE_ENV === "production" ? "Seeding operation failed" : error.message },
+      { status: 500 }
+    );
   }
 }

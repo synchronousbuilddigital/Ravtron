@@ -65,6 +65,9 @@ export async function POST(request) {
     return NextResponse.json({ url: `/uploads/${uniqueFilename}` });
   } catch (error) {
     console.error("Upload handler error:", error);
-    return NextResponse.json({ error: error.message || "Failed to upload file" }, { status: 500 });
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to upload file" : (error.message || "Failed to upload file") },
+      { status: 500 }
+    );
   }
 }

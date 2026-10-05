@@ -15,6 +15,10 @@ export async function POST() {
     });
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("POST /api/auth/logout error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to logout" : (error.message || "Failed to logout") },
+      { status: 500 }
+    );
   }
 }

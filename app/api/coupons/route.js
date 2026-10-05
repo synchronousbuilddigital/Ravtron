@@ -90,7 +90,11 @@ export async function GET(request) {
 
     return NextResponse.json(coupons);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("GET /api/coupons error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to retrieve coupons" : (error.message || "Failed to retrieve coupons") },
+      { status: 500 }
+    );
   }
 }
 
@@ -160,7 +164,11 @@ export async function POST(request) {
       return NextResponse.json(created, { status: 201 });
     }
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("POST /api/coupons error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to save coupon" : (error.message || "Failed to save coupon") },
+      { status: 500 }
+    );
   }
 }
 
@@ -194,6 +202,10 @@ export async function DELETE(request) {
     clearCouponsCache();
     return NextResponse.json({ success: true, message: "Coupon deleted successfully" });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("DELETE /api/coupons error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to delete coupon" : (error.message || "Failed to delete coupon") },
+      { status: 500 }
+    );
   }
 }

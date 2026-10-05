@@ -29,7 +29,11 @@ export async function GET() {
 
     return NextResponse.json(categories);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("GET /api/categories error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to retrieve categories" : (error.message || "Failed to retrieve categories") },
+      { status: 500 }
+    );
   }
 }
 
@@ -56,7 +60,11 @@ export async function POST(request) {
 
     return NextResponse.json(newCategory, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("POST /api/categories error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to create category" : (error.message || "Failed to create category") },
+      { status: 500 }
+    );
   }
 }
 
@@ -85,7 +93,11 @@ export async function DELETE(request) {
 
     return NextResponse.json({ success: true, message: "Category deleted successfully" });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("DELETE /api/categories error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to delete category" : (error.message || "Failed to delete category") },
+      { status: 500 }
+    );
   }
 }
 
@@ -154,6 +166,10 @@ export async function PUT(request) {
     
     return NextResponse.json(updated);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("PUT /api/categories error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to update category" : (error.message || "Failed to update category") },
+      { status: 500 }
+    );
   }
 }

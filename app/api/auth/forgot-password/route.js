@@ -92,6 +92,9 @@ export async function POST(request) {
 
   } catch (error) {
     logSecurityEvent("FORGOT_PASSWORD_SERVER_ERROR", { error: error.message });
-    return NextResponse.json({ error: error.message || "Failed to process request." }, { status: 500 });
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to process request. Please try again later." : (error.message || "Failed to process request.") },
+      { status: 500 }
+    );
   }
 }

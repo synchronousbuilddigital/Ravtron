@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Product from "@/models/Product";
 import { verifyUser } from "@/lib/auth";
+import { verifyCsrfOrigin } from "@/lib/csrf";
 
 export async function POST(request, { params }) {
   try {
+    const csrf = verifyCsrfOrigin(request);
+    if (!csrf.ok) return csrf.response;
     await dbConnect();
     const { id } = await params;
     const body = await request.json();
@@ -50,6 +53,10 @@ export async function POST(request, { params }) {
 
     return NextResponse.json(product);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("POST /api/products/[id]/reviews error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to submit review" : (error.message || "Failed to submit review") },
+      { status: 500 }
+    );
   }
 }

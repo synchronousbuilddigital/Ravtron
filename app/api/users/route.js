@@ -22,7 +22,11 @@ export async function GET() {
     setCachedUsers(users);
     return NextResponse.json(users);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("GET /api/users error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to retrieve users" : (error.message || "Failed to retrieve users") },
+      { status: 500 }
+    );
   }
 }
 
@@ -95,7 +99,11 @@ export async function PUT(request) {
     clearUsersCache();
     return NextResponse.json(updatedUser);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("PUT /api/users error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to update user" : (error.message || "Failed to update user") },
+      { status: 500 }
+    );
   }
 }
 
@@ -139,6 +147,10 @@ export async function POST(request) {
     clearUsersCache();
     return NextResponse.json(userToSession, { status: existing ? 200 : 201 });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("POST /api/users error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to create user" : (error.message || "Failed to create user") },
+      { status: 500 }
+    );
   }
 }

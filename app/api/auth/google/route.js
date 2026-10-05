@@ -131,6 +131,9 @@ export async function POST(request) {
     return NextResponse.json({ success: true, user: sessionUser });
   } catch (error) {
     logSecurityEvent("GOOGLE_AUTH_SERVER_ERROR", { error: error.message });
-    return NextResponse.json({ error: error.message || "Google authentication failed." }, { status: 500 });
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Google authentication failed. Please try again." : (error.message || "Google authentication failed.") },
+      { status: 500 }
+    );
   }
 }

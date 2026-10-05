@@ -48,6 +48,10 @@ export async function POST(request, { params }) {
 
     return NextResponse.json(order);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("POST /api/orders/[id]/return error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to submit return request" : (error.message || "Failed to submit return request") },
+      { status: 500 }
+    );
   }
 }

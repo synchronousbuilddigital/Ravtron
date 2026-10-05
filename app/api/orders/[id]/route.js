@@ -61,7 +61,11 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json(updatedOrder);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("PUT /api/orders/[id] error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to update order" : (error.message || "Failed to update order") },
+      { status: 500 }
+    );
   }
 }
 
@@ -81,6 +85,10 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(order);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("GET /api/orders/[id] error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to retrieve order" : (error.message || "Failed to retrieve order") },
+      { status: 500 }
+    );
   }
 }

@@ -22,7 +22,11 @@ export async function GET() {
 
     return NextResponse.json(slides);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("GET /api/hero error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to retrieve hero slides" : (error.message || "Failed to retrieve hero slides") },
+      { status: 500 }
+    );
   }
 }
 
@@ -70,7 +74,11 @@ export async function POST(request) {
 
     return NextResponse.json(updatedSlide, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("POST /api/hero error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to save hero slide" : (error.message || "Failed to save hero slide") },
+      { status: 500 }
+    );
   }
 }
 
@@ -89,6 +97,10 @@ export async function DELETE(request) {
 
     return NextResponse.json({ success: true, message: "All custom hero slides deleted successfully." });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("DELETE /api/hero error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to delete hero slides" : (error.message || "Failed to delete hero slides") },
+      { status: 500 }
+    );
   }
 }

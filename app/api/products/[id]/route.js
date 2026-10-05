@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Product from "@/models/Product";
 import { verifyAdmin } from "@/lib/auth";
 import { clearProductsCache } from "@/lib/cache";
+import { verifyCsrfOrigin } from "@/lib/csrf";
 
 export async function GET(request, { params }) {
   try {
@@ -17,12 +18,18 @@ export async function GET(request, { params }) {
     if (obj.description) obj.description = obj.description.replace(/ravtron/gi, "RAVTRON");
     return NextResponse.json(obj);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("GET /api/products/[id] error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to retrieve product" : (error.message || "Failed to retrieve product") },
+      { status: 500 }
+    );
   }
 }
 
 export async function PUT(request, { params }) {
   try {
+    const csrf = verifyCsrfOrigin(request);
+    if (!csrf.ok) return csrf.response;
     if (!(await verifyAdmin())) {
       return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
     }
@@ -42,12 +49,18 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json(updatedProduct);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("PUT /api/products/[id] error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to update product" : (error.message || "Failed to update product") },
+      { status: 500 }
+    );
   }
 }
 
 export async function DELETE(request, { params }) {
   try {
+    const csrf = verifyCsrfOrigin(request);
+    if (!csrf.ok) return csrf.response;
     if (!(await verifyAdmin())) {
       return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
     }
@@ -63,6 +76,10 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ success: true, message: "Product deleted" });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("DELETE /api/products/[id] error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to delete product" : (error.message || "Failed to delete product") },
+      { status: 500 }
+    );
   }
 }

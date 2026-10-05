@@ -40,7 +40,11 @@ export async function GET(request) {
 
     return NextResponse.json(getCachedProducts(excludeGallery));
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("GET /api/products error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to retrieve products" : (error.message || "Failed to retrieve products") },
+      { status: 500 }
+    );
   }
 }
 
@@ -60,6 +64,10 @@ export async function POST(request) {
 
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("POST /api/products error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to create product" : (error.message || "Failed to create product") },
+      { status: 500 }
+    );
   }
 }

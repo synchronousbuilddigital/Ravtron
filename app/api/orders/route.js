@@ -36,7 +36,11 @@ export async function GET(request) {
     }
     return NextResponse.json(orders);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("GET /api/orders error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to retrieve orders" : (error.message || "Failed to retrieve orders") },
+      { status: 500 }
+    );
   }
 }
 
@@ -165,6 +169,10 @@ export async function POST(request) {
 
     return NextResponse.json(newOrder, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("POST /api/orders error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to place order" : (error.message || "Failed to place order") },
+      { status: 500 }
+    );
   }
 }

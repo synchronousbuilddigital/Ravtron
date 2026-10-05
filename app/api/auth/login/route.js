@@ -156,7 +156,10 @@ export async function POST(request) {
     }
   } catch (error) {
     logSecurityEvent("LOGIN_SERVER_ERROR", { error: error.message });
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "An unexpected error occurred. Please try again." : (error.message || "An unexpected error occurred.") },
+      { status: 500 }
+    );
   }
 }
 

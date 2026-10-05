@@ -70,7 +70,10 @@ export async function POST(request) {
     return NextResponse.json({ success: true, message: "Support ticket registered successfully.", result: ticketResult });
   } catch (error) {
     console.error("POST /api/support error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to submit support ticket. Please try again." : (error.message || "Failed to submit support ticket.") },
+      { status: 500 }
+    );
   }
 }
 

@@ -48,6 +48,10 @@ export async function POST(request, { params }) {
 
     return NextResponse.json(order);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("POST /api/orders/[id]/cancel error:", error);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "production" ? "Failed to cancel order" : (error.message || "Failed to cancel order") },
+      { status: 500 }
+    );
   }
 }
