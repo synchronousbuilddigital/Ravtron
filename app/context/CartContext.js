@@ -5,6 +5,13 @@ import { products as fallbackProducts, categories as fallbackCategories } from "
 
 const CartContext = createContext(null);
 
+// ── Module-level cache timestamps ─────────────────────────────────────────────
+// These live outside the component so they persist across React re-renders and
+// context remounts (e.g., Next.js App Router page navigations).
+let _categoriesFetchedAt = 0;
+let _productsFetchedAt = 0;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
@@ -99,16 +106,23 @@ export function CartProvider({ children }) {
     }
   };
 
-  const fetchCategories = async (retries = 3, delay = 1000) => {
+  const fetchCategories = async (retries = 3, delay = 1000, force = false) => {
+    // ── In-memory cache guard: skip fetch if data is fresh (< 5 min old) ────
+    const now = Date.now();
+    if (!force && _categoriesFetchedAt > 0 && now - _categoriesFetchedAt < CACHE_TTL_MS) {
+      return; // Already fetched recently — skip the network call
+    }
+
     if (categories.length === 0) {
       setCategoriesLoading(true);
     }
     try {
-      const res = await fetch("/api/categories", { cache: "no-store" });
+      const res = await fetch("/api/categories");
       if (!res.ok) throw new Error("Failed to fetch categories");
       const data = await res.json();
       if (Array.isArray(data)) {
         setCategories(data);
+        _categoriesFetchedAt = Date.now(); // Mark successful fetch time
         try {
           localStorage.setItem("powerhub_categories_cache", JSON.stringify(data));
         } catch (e) {}
@@ -117,7 +131,7 @@ export function CartProvider({ children }) {
     } catch (err) {
       console.error(`Failed to fetch categories globally (retries left: ${retries})`, err);
       if (retries > 0) {
-        setTimeout(() => fetchCategories(retries - 1, delay * 1.5), delay);
+        setTimeout(() => fetchCategories(retries - 1, delay * 1.5, force), delay);
       } else {
         // Fallback to cached categories if available, otherwise local static categories
         try {
@@ -131,7 +145,7 @@ export function CartProvider({ children }) {
             }
           }
         } catch (e) {}
-        
+
         setCategories(fallbackCategories);
         setCategoriesLoading(false);
       }
@@ -158,7 +172,8 @@ export function CartProvider({ children }) {
     try {
       localStorage.removeItem("powerhub_categories_cache");
     } catch (e) {}
-    fetchCategories();
+    _categoriesFetchedAt = 0; // Bust the in-memory cache so a fresh fetch is forced
+    fetchCategories(3, 1000, true);
     try {
       window.dispatchEvent(new Event("ravtron_categories_change"));
     } catch (e) {}

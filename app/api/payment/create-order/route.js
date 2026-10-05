@@ -4,7 +4,7 @@ import dbConnect from "@/lib/dbConnect";
 import Product from "@/models/Product";
 import Coupon from "@/models/Coupon";
 import Order from "@/models/Order";
-import { verifyUser } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { calculateVerifiedCouponDiscount } from "@/lib/couponSecurity";
 
 // Helper to safely initialize Razorpay without crashing build evaluation
@@ -17,15 +17,19 @@ function getRazorpayInstance() {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { items, deliveryPref, coupon, currency = "INR", customerEmail, notes } = body;
+    const { items, deliveryPref, coupon, currency = "INR", notes } = body;
 
-    // ── 1. Auth guard — only logged-in users can create a payment order ──────
-    if (!customerEmail || !(await verifyUser(customerEmail))) {
+    // ── 1. Auth guard — read email from the SIGNED SESSION COOKIE, not the body ──
+    // SECURITY FIX: Never trust customerEmail from the request body.
+    // Always derive identity from the cryptographically signed server-side session.
+    const session = await getSession();
+    if (!session || !session.email) {
       return NextResponse.json(
         { error: "Unauthorized: Invalid or missing user session" },
         { status: 403 }
       );
     }
+    const customerEmail = session.email; // Trusted source — HMAC-signed cookie
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
@@ -101,14 +105,18 @@ export async function POST(request) {
     // Razorpay accepts amount in the SMALLEST currency unit (paise for INR)
     const amountInPaise = Math.round(verifiedTotal * 100);
 
-    // Check if Razorpay keys are configured before attempting order creation
+    // SECURITY FIX: Validate key format (must start with rzp_test_ or rzp_live_)
+    // This catches misconfigured keys faster than waiting for Razorpay's API error.
+    const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
+    const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
+
     if (
-      !process.env.RAZORPAY_KEY_ID ||
-      !process.env.RAZORPAY_KEY_SECRET ||
-      process.env.RAZORPAY_KEY_ID.includes("REPLACE")
+      !razorpayKeyId ||
+      !razorpayKeySecret ||
+      (!razorpayKeyId.startsWith("rzp_test_") && !razorpayKeyId.startsWith("rzp_live_"))
     ) {
       return NextResponse.json(
-        { error: "Razorpay API keys are not configured in environment variables." },
+        { error: "Razorpay API keys are not configured correctly in environment variables." },
         { status: 500 }
       );
     }
@@ -121,17 +129,20 @@ export async function POST(request) {
       notes: notes || {},
     });
 
+    // SECURITY FIX: Do NOT expose key_id in the server response.
+    // The frontend reads NEXT_PUBLIC_RAZORPAY_KEY_ID directly from env — no need to pass it here.
     return NextResponse.json({
       razorpay_order_id: razorpayOrder.id,
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
       verifiedTotal, // Send back so frontend can display confirmed amount
-      key_id: process.env.RAZORPAY_KEY_ID,
     });
   } catch (error) {
-    console.error("[RAZORPAY] Create order error:", error);
+    // Avoid leaking internal error details in production
+    const isProduction = process.env.NODE_ENV === "production";
+    console.error("[PAYMENT] Create order error:", isProduction ? error.message : error);
     return NextResponse.json(
-      { error: error.message || "Failed to create payment order" },
+      { error: isProduction ? "Failed to create payment order" : (error.message || "Failed to create payment order") },
       { status: 500 }
     );
   }

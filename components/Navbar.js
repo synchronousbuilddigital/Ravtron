@@ -120,35 +120,51 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const res = await fetch("/api/auth/me");
-        const data = await res.json();
-        if (data.isLoggedIn && data.user) {
-          setUser(data.user);
-          localStorage.setItem("ravtron_session", JSON.stringify(data.user));
-        } else {
-          setUser(null);
-          localStorage.removeItem("ravtron_session");
-        }
-      } catch (e) {
-        const session = localStorage.getItem("ravtron_session");
-        if (session) {
-          try { setUser(JSON.parse(session)); } catch (err) { setUser(null); }
-        } else {
-          setUser(null);
-        }
+    // ── Step 1: Show user INSTANTLY from localStorage (zero flicker) ────────
+    const cached = localStorage.getItem("ravtron_session");
+    if (cached) {
+      try { setUser(JSON.parse(cached)); } catch (e) {}
+    }
+
+    // ── Step 2: Silently verify with the server ONCE in the background ───────
+    // Uses sessionStorage flag so we only call /api/auth/me once per browser tab,
+    // not on every page navigation or re-render.
+    const alreadyVerified = sessionStorage.getItem("ravtron_auth_verified");
+    if (!alreadyVerified) {
+      fetch("/api/auth/me")
+        .then((res) => res.json())
+        .then((data) => {
+          sessionStorage.setItem("ravtron_auth_verified", "1");
+          if (data.isLoggedIn && data.user) {
+            setUser(data.user);
+            localStorage.setItem("ravtron_session", JSON.stringify(data.user));
+          } else {
+            setUser(null);
+            localStorage.removeItem("ravtron_session");
+          }
+        })
+        .catch(() => {
+          // Network error — keep showing the cached user from localStorage
+        });
+    }
+
+    // ── Step 3: Re-check on explicit auth events (login / logout) ────────────
+    const handleAuthChange = () => {
+      sessionStorage.removeItem("ravtron_auth_verified"); // Force re-verify on next check
+      const session = localStorage.getItem("ravtron_session");
+      if (session) {
+        try { setUser(JSON.parse(session)); } catch (e) { setUser(null); }
+      } else {
+        setUser(null);
       }
     };
 
-    checkUser();
-
-    window.addEventListener("storage", checkUser);
-    window.addEventListener("ravtron_auth_change", checkUser);
+    window.addEventListener("storage", handleAuthChange);
+    window.addEventListener("ravtron_auth_change", handleAuthChange);
 
     return () => {
-      window.removeEventListener("storage", checkUser);
-      window.removeEventListener("ravtron_auth_change", checkUser);
+      window.removeEventListener("storage", handleAuthChange);
+      window.removeEventListener("ravtron_auth_change", handleAuthChange);
     };
   }, []);
 

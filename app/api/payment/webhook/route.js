@@ -58,20 +58,30 @@ export async function POST(request) {
       const razorpayPaymentId = paymentEntity.id;
 
       if (razorpayOrderId) {
-        const updated = await Order.findOneAndUpdate(
-          { razorpayOrderId },
-          {
-            razorpayPaymentId,
-            paymentStatus: "paid",
-            status: "Order Placed",
-          },
-          { new: true }
-        );
+        // SECURITY FIX (Issue #5): Idempotency guard.
+        // Razorpay retries webhooks on failure — this prevents double-processing
+        // if the same payment.captured event arrives more than once.
+        const existingOrder = await Order.findOne({ razorpayOrderId }).lean();
 
-        if (updated) {
-          console.log(`[WEBHOOK] Order marked as paid: ${updated.id}`);
+        if (existingOrder && existingOrder.paymentStatus === "paid") {
+          // Already processed — acknowledge without re-applying changes
+          console.log(`[WEBHOOK] Already processed — skipping duplicate for razorpayOrderId: ${razorpayOrderId}`);
         } else {
-          console.warn(`[WEBHOOK] No matching order found for razorpayOrderId: ${razorpayOrderId}`);
+          const updated = await Order.findOneAndUpdate(
+            { razorpayOrderId },
+            {
+              razorpayPaymentId,
+              paymentStatus: "paid",
+              status: "Order Placed",
+            },
+            { new: true }
+          );
+
+          if (updated) {
+            console.log(`[WEBHOOK] Order marked as paid: ${updated.id}`);
+          } else {
+            console.warn(`[WEBHOOK] No matching order found for razorpayOrderId: ${razorpayOrderId}`);
+          }
         }
       }
     }

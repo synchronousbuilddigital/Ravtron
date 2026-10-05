@@ -4,7 +4,7 @@ import dbConnect from "@/lib/dbConnect";
 import Order from "@/models/Order";
 import Product from "@/models/Product";
 import Coupon from "@/models/Coupon";
-import { verifyUser } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { calculateVerifiedCouponDiscount } from "@/lib/couponSecurity";
 import { clearOrdersCache } from "@/lib/cache";
 import { sendOrderConfirmationEmail, sendNewOrderAdminAlert } from "@/lib/email";
@@ -35,13 +35,19 @@ export async function POST(request) {
       );
     }
 
-    // ── 2. Auth guard ────────────────────────────────────────────────────────
-    if (!(await verifyUser(orderData.customerEmail))) {
+    // ── 2. Auth guard — read identity from the SIGNED SESSION COOKIE, not the body ──
+    // SECURITY FIX: Never trust customerEmail from the request body.
+    // Always derive identity from the cryptographically signed server-side session.
+    const session = await getSession();
+    if (!session || !session.email) {
       return NextResponse.json(
         { error: "Unauthorized: Invalid user session" },
         { status: 403 }
       );
     }
+    // Use session email as the authoritative identity.
+    // If orderData includes a different email, it is simply ignored.
+    const sessionEmail = session.email;
 
     // ── 3. Verify HMAC SHA256 signature ──────────────────────────────────────
     // Razorpay creates: HMAC_SHA256( razorpay_order_id + "|" + razorpay_payment_id )
@@ -124,7 +130,7 @@ export async function POST(request) {
     // Server-side coupon validation & savings recalculation (100% secure)
     const { verifiedSavings, couponCode } = await calculateVerifiedCouponDiscount({
       couponCodeInput: orderData.coupon,
-      customerEmail: orderData.customerEmail,
+      customerEmail: sessionEmail, // Use session email — never the body's email
       validatedItems,
       subtotal
     });
@@ -149,8 +155,10 @@ export async function POST(request) {
       );
     }
 
-    // ── 6. Generate order ID & build order document ──────────────────────────
-    const orderId = "RVT-" + Math.floor(10000 + Math.random() * 90000) + "-IN";
+    // ── 6. Generate a collision-resistant Order ID ────────────────────────────
+    // SECURITY FIX: Math.random() only has 90,000 possibilities — UUID has 2^122.
+    // Format: RVT-<8 hex chars>-IN  e.g. RVT-A3F2C1D9-IN
+    const orderId = "RVT-" + crypto.randomUUID().split("-")[0].toUpperCase() + "-IN";
 
     const newOrder = {
       id: orderId,
@@ -165,7 +173,7 @@ export async function POST(request) {
       savings: verifiedSavings,
       coupon: orderData.coupon || "",
       customerName: orderData.customerName,
-      customerEmail: orderData.customerEmail,
+      customerEmail: sessionEmail, // Always use the session-verified email
       customerPhone: orderData.customerPhone || "",
       deliveryPref: orderData.deliveryPref || "standard",
       paymentMethod: (orderData.paymentMethod || "CARD").toUpperCase(),
@@ -222,9 +230,11 @@ export async function POST(request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("[RAZORPAY] Verify payment error:", error);
+    // SECURITY FIX: Avoid leaking internal stack traces in production
+    const isProduction = process.env.NODE_ENV === "production";
+    console.error("[PAYMENT] Verify error:", isProduction ? error.message : error);
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
+      { error: isProduction ? "Internal server error" : (error.message || "Internal server error") },
       { status: 500 }
     );
   }

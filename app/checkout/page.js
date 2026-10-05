@@ -512,11 +512,11 @@ export default function CheckoutPage() {
       const createData = await createRes.json();
       if (!createRes.ok) throw new Error(createData.error || "Could not initiate payment");
 
-      const { razorpay_order_id, amount, currency, key_id } = createData;
+      const { razorpay_order_id, amount, currency } = createData;
 
       // 3. Open Razorpay checkout popup
       const razorpayOptions = {
-        key: key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount,
         currency,
         name: "RAVTRON®",
