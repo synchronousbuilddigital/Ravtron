@@ -363,7 +363,7 @@ export default function ProductDetailPage({ params }) {
           <div className="w-full lg:w-1/2 bg-white border border-[#1E293B]/10 rounded-3xl md:rounded-[2.5rem] p-4 sm:p-6 md:p-8 flex flex-col justify-between relative shadow-sm">
 
             {/* Inner Rounded Grey Square Container */}
-            <div className="w-full aspect-square relative rounded-2xl md:rounded-3xl bg-[#EAEAEA] overflow-hidden group flex items-center justify-center p-4 sm:p-6 md:p-8">
+            <div className="w-full aspect-square relative rounded-2xl md:rounded-3xl bg-[#ECEEF0] overflow-hidden group flex items-center justify-center">
               
               {/* Float Wishlist Trigger */}
               <button
@@ -389,15 +389,12 @@ export default function ProductDetailPage({ params }) {
                 </svg>
               </button>
 
-              {/* Product Image inside rounded grey square */}
+              {/* Product Image filling the rounded square cleanly */}
               {(selectedImage || product.image) ? (
                 <img
                   src={selectedImage || product.image || "/logo.png"}
                   alt={product.name}
-                  className="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
-                  style={{
-                    filter: "drop-shadow(0 8px 16px rgba(26,25,23,0.06))"
-                  }}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               ) : null}
             </div>
