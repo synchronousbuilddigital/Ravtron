@@ -26,7 +26,8 @@ import {
   Barcode,
   UploadCloud,
   FileText,
-  X
+  X,
+  ExternalLink
 } from "lucide-react";
  
 export default function SupportPage() {
@@ -455,7 +456,44 @@ export default function SupportPage() {
                       <p className="text-xs font-black text-[#3674B5]">₹{trackedOrder.total.toLocaleString()}</p>
                     </div>
                   </div>
- 
+
+                  {/* Courier & Tracking Details Card */}
+                  {(trackedOrder.courier || trackedOrder.courierName || trackedOrder.trackingId) && (
+                    <div className="bg-[#F8FAFC] border border-slate-200/80 rounded-2xl p-4 space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Truck className="w-4 h-4 text-[#3674B5]" />
+                          <span className="font-bold text-slate-900">Shipment Tracking Details</span>
+                        </div>
+                        {trackedOrder.trackingUrl && (
+                          <a
+                            href={trackedOrder.trackingUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[11px] font-bold text-[#3674B5] hover:underline inline-flex items-center gap-1"
+                          >
+                            <span>Track on Courier Website</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Courier Partner</span>
+                          <span className="font-bold text-slate-900">{trackedOrder.courier || trackedOrder.courierName}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Tracking / AWB Number</span>
+                          <span className="font-mono font-bold text-[#3674B5]">{trackedOrder.trackingId || "Assigned"}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Estimated Delivery</span>
+                          <span className="font-semibold text-slate-700">{trackedOrder.estimatedDelivery || "3 - 5 Business Days"}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Real-time Tracking Steps Status (timeline visualization) */}
                   <div className="space-y-5">
                     <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Delivery Milestones</h5>

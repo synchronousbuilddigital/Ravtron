@@ -101,6 +101,9 @@ export default function Navbar() {
       localStorage.removeItem("ravtron_session");
       localStorage.removeItem("ravtron_cart");
       localStorage.removeItem("ravtron_wishlist");
+      localStorage.removeItem("ravtron_address");
+      localStorage.removeItem("ravtron_saved_addresses");
+      sessionStorage.removeItem("ravtron_auth_verified");
     } catch (e) {}
     try {
       await fetch("/api/auth/logout", { method: "POST" });

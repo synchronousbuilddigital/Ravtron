@@ -21,12 +21,24 @@ export async function PUT(request, { params }) {
     // Fields like total, items, customerEmail, customerName, id are NEVER overwritable after checkout.
     const allowedUpdates = {};
 
-    if (body.status !== undefined)           allowedUpdates.status = body.status;
-    if (body.statusColor !== undefined)      allowedUpdates.statusColor = body.statusColor;
-    if (body.trackingSteps !== undefined)    allowedUpdates.trackingSteps = body.trackingSteps;
-    if (body.trackingId !== undefined)       allowedUpdates.trackingId = body.trackingId;
-    if (body.courier !== undefined)          allowedUpdates.courier = body.courier;
-    if (body.adminNote !== undefined)        allowedUpdates.adminNote = body.adminNote;
+    if (body.status !== undefined)                  allowedUpdates.status = String(body.status).trim();
+    if (body.statusColor !== undefined)             allowedUpdates.statusColor = String(body.statusColor).trim();
+    if (body.trackingSteps !== undefined)           allowedUpdates.trackingSteps = body.trackingSteps;
+    if (body.trackingId !== undefined)              allowedUpdates.trackingId = String(body.trackingId).trim();
+    if (body.courier !== undefined)                 allowedUpdates.courier = String(body.courier).trim();
+    if (body.courierName !== undefined)             allowedUpdates.courierName = String(body.courierName).trim();
+    if (body.trackingUrl !== undefined)             allowedUpdates.trackingUrl = String(body.trackingUrl).trim();
+    if (body.estimatedDelivery !== undefined)       allowedUpdates.estimatedDelivery = String(body.estimatedDelivery).trim();
+    if (body.dispatchNote !== undefined)            allowedUpdates.dispatchNote = String(body.dispatchNote).trim();
+    if (body.dispatchedAt !== undefined)            allowedUpdates.dispatchedAt = String(body.dispatchedAt).trim();
+    if (body.adminNote !== undefined)               allowedUpdates.adminNote = String(body.adminNote).trim();
+
+    // Ensure courier field sync
+    if (allowedUpdates.courier && !allowedUpdates.courierName) {
+      allowedUpdates.courierName = allowedUpdates.courier;
+    } else if (allowedUpdates.courierName && !allowedUpdates.courier) {
+      allowedUpdates.courier = allowedUpdates.courierName;
+    }
 
     if (Object.keys(allowedUpdates).length === 0) {
       return NextResponse.json({ error: "No valid fields provided for update." }, { status: 400 });
@@ -43,13 +55,49 @@ export async function PUT(request, { params }) {
     }
     clearOrdersCache();
 
-    // Trigger shipment notification email if order status was set to Shipped
-    if (body.status === "Shipped") {
-      sendShipmentNotificationEmail(updatedOrder)
-        .catch((err) => console.error("Shipment notification email error:", err));
+    // Trigger shipment tracking email if requested or if status is set/updated to Shipped
+    let emailResult = null;
+    const shouldSendEmail =
+      body.sendEmailNotification === true ||
+      body.sendTrackingEmail === true ||
+      (body.status === "Shipped" && body.sendEmailNotification !== false);
+
+    if (shouldSendEmail) {
+      const courier = allowedUpdates.courier || allowedUpdates.courierName || updatedOrder.courier || updatedOrder.courierName || "Express Courier";
+      const trackingId = allowedUpdates.trackingId || updatedOrder.trackingId || updatedOrder.id;
+      const trackingUrl = allowedUpdates.trackingUrl || updatedOrder.trackingUrl || "";
+      const dispatchNote = allowedUpdates.dispatchNote || updatedOrder.dispatchNote || "";
+      const estimatedDelivery = allowedUpdates.estimatedDelivery || updatedOrder.estimatedDelivery || "";
+
+      try {
+        emailResult = await sendShipmentNotificationEmail(
+          updatedOrder,
+          courier,
+          trackingId,
+          trackingUrl,
+          dispatchNote,
+          estimatedDelivery
+        );
+
+        if (emailResult?.success) {
+          const emailSentTimestamp = new Date().toLocaleString("en-IN");
+          await Order.updateOne(
+            { id },
+            { $set: { lastTrackingEmailSentAt: emailSentTimestamp } }
+          );
+          updatedOrder.lastTrackingEmailSentAt = emailSentTimestamp;
+        }
+      } catch (err) {
+        console.error("Shipment notification email error:", err);
+      }
     }
 
-    return NextResponse.json(updatedOrder);
+    const resData = updatedOrder.toObject ? updatedOrder.toObject() : updatedOrder;
+    return NextResponse.json({
+      ...resData,
+      emailSent: emailResult?.success ?? false,
+      emailResult: emailResult || null
+    });
   } catch (error) {
     console.error("PUT /api/orders/[id] error:", error);
     return NextResponse.json(

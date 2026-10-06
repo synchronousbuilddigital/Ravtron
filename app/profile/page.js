@@ -23,7 +23,8 @@ import {
   X,
   ChevronRight,
   Search,
-  ArrowRight
+  ArrowRight,
+  ExternalLink
 } from "lucide-react";
 import SearchModal from "../../components/SearchModal";
 import CartDrawer from "../../components/CartDrawer";
@@ -215,6 +216,9 @@ export default function ProfilePage() {
       localStorage.removeItem("ravtron_session");
       localStorage.removeItem("ravtron_cart");
       localStorage.removeItem("ravtron_wishlist");
+      localStorage.removeItem("ravtron_address");
+      localStorage.removeItem("ravtron_saved_addresses");
+      sessionStorage.removeItem("ravtron_auth_verified");
     } catch (e) {}
     try {
       await fetch("/api/auth/logout", { method: "POST" });
@@ -936,6 +940,35 @@ export default function ProfilePage() {
                 <h3 className="text-lg font-bold text-slate-900">Package Tracking</h3>
                 <p className="text-[10px] text-[#3674B5] font-bold uppercase tracking-wider mt-0.5">Order Reference: {trackingOrder.id}</p>
               </div>
+
+              {/* Courier & Tracking Details Card */}
+              {(trackingOrder.courier || trackingOrder.courierName || trackingOrder.trackingId) && (
+                <div className="bg-[#F8FAFC] border border-slate-200/80 rounded-xl p-3 space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Courier Partner</span>
+                    <span className="font-bold text-slate-900">{trackingOrder.courier || trackingOrder.courierName}</span>
+                  </div>
+                  {trackingOrder.trackingId && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tracking / AWB No</span>
+                      <span className="font-mono font-bold text-[#3674B5]">{trackingOrder.trackingId}</span>
+                    </div>
+                  )}
+                  {trackingOrder.trackingUrl && (
+                    <div className="pt-1 border-t border-slate-200/60 flex justify-end">
+                      <a
+                        href={trackingOrder.trackingUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] font-bold text-[#3674B5] hover:underline inline-flex items-center gap-1"
+                      >
+                        <span>Track Live on Courier Portal</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Timeline steps vertical layout */}
               <div className="space-y-5 pt-2">

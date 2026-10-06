@@ -94,8 +94,14 @@ export default function CheckoutPage() {
   const [createdOrder, setCreatedOrder] = useState(null);
   const [paymentError, setPaymentError] = useState("");
 
+  // Address storage key helper to isolate addresses per user account
+  const getAddressStorageKey = (email) => {
+    if (!email) return "ravtron_saved_addresses_guest";
+    return `ravtron_saved_addresses_${email.trim().toLowerCase()}`;
+  };
+
   // Address selection helper
-  const handleSelectSavedAddress = (addr) => {
+  const handleSelectSavedAddress = (addr, userContext = null) => {
     if (!addr) return;
     setSelectedAddressId(addr.id);
     setIsAddingNewAddress(false);
@@ -106,11 +112,12 @@ export default function CheckoutPage() {
       zip: addr.zip || "",
       country: addr.country || "India"
     });
-    if (addr.name || addr.phone) {
+
+    const activeUser = userContext || currentUser;
+    if (addr.phone && (!activeUser?.phone || !contactForm.phone)) {
       setContactForm((prev) => ({
         ...prev,
-        name: addr.name || prev.name,
-        phone: addr.phone || prev.phone
+        phone: prev.phone || addr.phone
       }));
     }
   };
@@ -119,7 +126,8 @@ export default function CheckoutPage() {
     e.stopPropagation();
     const updated = savedAddresses.filter((a) => a.id !== addrId);
     setSavedAddresses(updated);
-    localStorage.setItem("ravtron_saved_addresses", JSON.stringify(updated));
+    const storageKey = getAddressStorageKey(currentUser?.email);
+    localStorage.setItem(storageKey, JSON.stringify(updated));
     showToast("Address removed", "info");
     if (selectedAddressId === addrId) {
       if (updated.length > 0) {
@@ -189,7 +197,8 @@ export default function CheckoutPage() {
 
     const updatedList = [...savedAddresses, newAddrObj];
     setSavedAddresses(updatedList);
-    localStorage.setItem("ravtron_saved_addresses", JSON.stringify(updatedList));
+    const storageKey = getAddressStorageKey(currentUser?.email);
+    localStorage.setItem(storageKey, JSON.stringify(updatedList));
 
     handleSelectSavedAddress(newAddrObj);
     setIsAddingNewAddress(false);
@@ -238,6 +247,9 @@ export default function CheckoutPage() {
       setCurrentUser(parsedUser);
       const initialName = parsedUser.name || "";
       const initialPhone = parsedUser.phone || "";
+      const userEmail = (parsedUser.email || "").toLowerCase();
+      const storageKey = getAddressStorageKey(userEmail);
+
       setContactForm({
         name: initialName,
         email: parsedUser.email || "",
@@ -250,9 +262,9 @@ export default function CheckoutPage() {
         phone: initialPhone
       }));
 
-      // 1. Load saved address list from localStorage
+      // 1. Load saved address list strictly scoped to this user account
       let list = [];
-      const storedList = localStorage.getItem("ravtron_saved_addresses");
+      const storedList = localStorage.getItem(storageKey);
       if (storedList) {
         try {
           list = JSON.parse(storedList);
@@ -261,37 +273,20 @@ export default function CheckoutPage() {
         }
       }
 
-      // 2. Fallback: Check single ravtron_address if list is empty
-      const singleAddr = localStorage.getItem("ravtron_address");
-      if (list.length === 0 && singleAddr) {
-        try {
-          const parsedSingle = JSON.parse(singleAddr);
-          if (parsedSingle.street) {
-            const defaultAddr = {
-              id: "addr_default",
-              tag: "Home",
-              name: initialName || "Default Address",
-              phone: initialPhone,
-              street: parsedSingle.street || "",
-              city: parsedSingle.city || "",
-              state: parsedSingle.state || "",
-              zip: parsedSingle.zip || "",
-              country: parsedSingle.country || "India"
-            };
-            list = [defaultAddr];
-            localStorage.setItem("ravtron_saved_addresses", JSON.stringify(list));
-          }
-        } catch (e) {
-          console.error("Failed to parse single address data", e);
-        }
-      }
-
       setSavedAddresses(list);
 
       if (list.length > 0) {
-        handleSelectSavedAddress(list[0]);
+        handleSelectSavedAddress(list[0], parsedUser);
       } else {
+        setSelectedAddressId(null);
         setIsAddingNewAddress(true);
+        setShippingForm({
+          street: "",
+          city: "",
+          state: "",
+          zip: "",
+          country: "India"
+        });
       }
 
       // Auto-advance to Step 2 (Shipping Address) if user contact info is pre-filled
@@ -363,7 +358,8 @@ export default function CheckoutPage() {
 
       const updatedList = [...savedAddresses, newAddrObj];
       setSavedAddresses(updatedList);
-      localStorage.setItem("ravtron_saved_addresses", JSON.stringify(updatedList));
+      const storageKey = getAddressStorageKey(currentUser?.email);
+      localStorage.setItem(storageKey, JSON.stringify(updatedList));
 
       handleSelectSavedAddress(newAddrObj);
       setIsAddingNewAddress(false);

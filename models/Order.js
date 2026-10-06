@@ -54,7 +54,16 @@ const OrderSchema = new mongoose.Schema(
     },
     items: { type: [OrderItemSchema], default: [] },
     trackingSteps: { type: [TrackingStepSchema], default: [] },
-    returnRequest: { type: ReturnRequestSchema, default: null }
+    returnRequest: { type: ReturnRequestSchema, default: null },
+    // Express Courier & Shipment Tracking Fields
+    courier: { type: String, default: "" },
+    courierName: { type: String, default: "" },
+    trackingId: { type: String, default: "" },
+    trackingUrl: { type: String, default: "" },
+    estimatedDelivery: { type: String, default: "" },
+    dispatchNote: { type: String, default: "" },
+    dispatchedAt: { type: String, default: "" },
+    lastTrackingEmailSentAt: { type: String, default: "" }
   },
   { timestamps: true }
 );
