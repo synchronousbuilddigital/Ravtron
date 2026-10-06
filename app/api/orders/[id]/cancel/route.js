@@ -4,9 +4,13 @@ import Order from "@/models/Order";
 import Product from "@/models/Product";
 import { verifyUser, verifyAdmin } from "@/lib/auth";
 import { clearOrdersCache } from "@/lib/cache";
+import { verifyCsrfOrigin } from "@/lib/csrf";
 
 export async function POST(request, { params }) {
   try {
+    const csrf = verifyCsrfOrigin(request);
+    if (!csrf.ok) return csrf.response;
+
     await dbConnect();
     const { id } = await params;
 

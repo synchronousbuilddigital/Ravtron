@@ -6,6 +6,7 @@ import Coupon from "@/models/Coupon";
 import Order from "@/models/Order";
 import { getSession } from "@/lib/auth";
 import { calculateVerifiedCouponDiscount } from "@/lib/couponSecurity";
+import { verifyCsrfOrigin } from "@/lib/csrf";
 
 // Helper to safely initialize Razorpay without crashing build evaluation
 function getRazorpayInstance() {
@@ -16,6 +17,9 @@ function getRazorpayInstance() {
 
 export async function POST(request) {
   try {
+    const csrf = verifyCsrfOrigin(request);
+    if (!csrf.ok) return csrf.response;
+
     const body = await request.json();
     const { items, deliveryPref, coupon, currency = "INR", notes } = body;
 

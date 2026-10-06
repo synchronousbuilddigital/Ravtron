@@ -8,9 +8,13 @@ import { getSession } from "@/lib/auth";
 import { calculateVerifiedCouponDiscount } from "@/lib/couponSecurity";
 import { clearOrdersCache } from "@/lib/cache";
 import { sendOrderConfirmationEmail, sendNewOrderAdminAlert } from "@/lib/email";
+import { verifyCsrfOrigin } from "@/lib/csrf";
 
 export async function POST(request) {
   try {
+    const csrf = verifyCsrfOrigin(request);
+    if (!csrf.ok) return csrf.response;
+
     const body = await request.json();
 
     const {
