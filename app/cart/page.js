@@ -14,7 +14,7 @@ import {
   Tag,
   ShieldCheck,
   Truck,
-  RotateCcw,
+  Award,
   Sparkles,
   Lock,
   Check
@@ -276,9 +276,9 @@ export default function CartPage() {
                   <p className="text-[8px] sm:text-[10px] font-semibold text-slate-400">Ships in 24 Hours</p>
                 </div>
                 <div className="bg-white border border-[#1E293B]/10 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 space-y-0.5 sm:space-y-1">
-                  <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5 text-[#3674B5] mx-auto" />
-                  <h4 className="text-[10px] sm:text-xs font-bold text-[#1E293B]">7-Day Return</h4>
-                  <p className="text-[8px] sm:text-[10px] font-semibold text-slate-400">Easy Replacement</p>
+                  <Award className="w-4 h-4 sm:w-5 sm:h-5 text-[#3674B5] mx-auto" />
+                  <h4 className="text-[10px] sm:text-xs font-bold text-[#1E293B]">1-Year Warranty</h4>
+                  <p className="text-[8px] sm:text-[10px] font-semibold text-slate-400">Official Coverage</p>
                 </div>
               </div>
             </div>

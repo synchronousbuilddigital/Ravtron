@@ -9,7 +9,7 @@ import Image from "next/image";
 import Footer from "../../../components/Footer";
 import SearchModal from "../../../components/SearchModal";
 import CartDrawer from "../../../components/CartDrawer";
-import { Star, Package, Zap, RotateCcw } from "lucide-react";
+import { Star, Package, Zap, ShieldCheck } from "lucide-react";
 import { ProductJsonLd, BreadcrumbJsonLd } from "../../../components/JsonLd";
 
 const getDescription = (id) => {
@@ -759,8 +759,8 @@ export default function ProductDetailPage({ params }) {
                   <p><strong className="text-[#1E293B]">Dispatched within 24 hours</strong> from our nearest automated fulfillment center.</p>
                 </div>
                 <div className="flex items-start gap-2.5">
-                  <RotateCcw className="w-4 h-4 text-[#DEC89E] mt-0.5 flex-shrink-0" />
-                  <p><strong className="text-[#1E293B]">7-day replacement period</strong> for any manufacturing discrepancies.</p>
+                  <ShieldCheck className="w-4 h-4 text-[#3674B5] mt-0.5 flex-shrink-0" />
+                  <p><strong className="text-[#1E293B]">1-Year Brand Warranty</strong> with dedicated customer support.</p>
                 </div>
               </div>
             )}
