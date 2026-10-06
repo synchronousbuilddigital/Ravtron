@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Script from "next/script";
 import { useCart } from "../context/CartContext";
 import {
   CreditCard,
@@ -445,28 +446,69 @@ export default function CheckoutPage() {
   // ─── Load Razorpay checkout.js SDK dynamically ──────────────────────────
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
-      if (document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]')) {
+      // 1. If window.Razorpay constructor is already available, resolve immediately
+      if (typeof window !== "undefined" && typeof window.Razorpay === "function") {
         resolve(true);
         return;
       }
+
+      // Helper to poll window.Razorpay until it's defined
+      const waitForRazorpay = (maxWaitMs = 5000, intervalMs = 100) => {
+        let elapsed = 0;
+        const timer = setInterval(() => {
+          elapsed += intervalMs;
+          if (typeof window !== "undefined" && typeof window.Razorpay === "function") {
+            clearInterval(timer);
+            resolve(true);
+          } else if (elapsed >= maxWaitMs) {
+            clearInterval(timer);
+            resolve(typeof window !== "undefined" && typeof window.Razorpay === "function");
+          }
+        }, intervalMs);
+      };
+
+      if (typeof document === "undefined") {
+        resolve(false);
+        return;
+      }
+
+      const existingScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+      if (existingScript) {
+        waitForRazorpay(4000);
+        return;
+      }
+
       const script = document.createElement("script");
       script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
+      script.async = true;
+      script.onload = () => {
+        waitForRazorpay(3000);
+      };
+      script.onerror = () => {
+        console.error("[RAZORPAY] Failed to load checkout script from CDN");
+        resolve(false);
+      };
       document.body.appendChild(script);
     });
   };
+
+  // Pre-load Razorpay checkout script on page mount
+  useEffect(() => {
+    loadRazorpayScript();
+  }, []);
 
   // ─── Razorpay: open popup and handle real payment ─────────────────────────
   const handleRazorpayPayment = async () => {
     setIsProcessing(true);
     setPaymentError("");
 
-    // 1. Dynamically load Razorpay SDK
+    // 1. Dynamically ensure Razorpay SDK is ready
     const loaded = await loadRazorpayScript();
-    if (!loaded) {
+    if (!loaded || typeof window === "undefined" || typeof window.Razorpay !== "function") {
       setIsProcessing(false);
-      showToast("Failed to load payment gateway. Check your internet connection.", "error");
+      const errMsg = "Payment gateway could not be loaded. Please disable ad-blockers or refresh the page.";
+      setPaymentError(errMsg);
+      showToast(errMsg, "error");
       return;
     }
 
@@ -483,8 +525,8 @@ export default function CheckoutPage() {
             qty: item.quantity
           })),
           deliveryPref,
+          coupon: coupon || "",
           currency: "INR",
-          customerEmail: contactForm.email,
           notes: {
             customerName: contactForm.name,
             customerPhone: contactForm.phone
@@ -498,6 +540,10 @@ export default function CheckoutPage() {
       const { razorpay_order_id, amount, currency } = createData;
 
       // 3. Open Razorpay checkout popup
+      if (typeof window.Razorpay !== "function") {
+        throw new Error("Razorpay payment gateway failed to initialize. Please refresh the page.");
+      }
+
       const razorpayOptions = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount,
@@ -558,7 +604,8 @@ export default function CheckoutPage() {
             const verifyData = await verifyRes.json();
             if (!verifyRes.ok) throw new Error(verifyData.error || "Payment verification failed");
 
-            localStorage.setItem("ravtron_address", JSON.stringify(shippingForm));
+            const storageKey = getAddressStorageKey(currentUser?.email || contactForm.email);
+            localStorage.setItem(storageKey, JSON.stringify(savedAddresses));
             setCreatedOrder(verifyData.order);
             setPaymentResult("success");
             clearCart();
@@ -1454,6 +1501,7 @@ export default function CheckoutPage() {
         </div>
       )}
 
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       <Footer />
       <SearchModal />
     </div>

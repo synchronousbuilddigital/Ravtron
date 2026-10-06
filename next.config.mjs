@@ -16,7 +16,7 @@ const ContentSecurityPolicy = [
   "default-src 'self'",
 
   // Scripts: self + Next.js inline hydration + Google OAuth + Razorpay checkout
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://accounts.google.com https://apis.google.com https://checkout.razorpay.com`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://accounts.google.com https://apis.google.com https://checkout.razorpay.com https://*.razorpay.com`,
 
   // Styles: self + inline (Tailwind/CSS-in-JS) + Google Fonts
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
@@ -25,13 +25,13 @@ const ContentSecurityPolicy = [
   "font-src 'self' https://fonts.gstatic.com",
 
   // Images: self + data URIs + blob + Cloudinary + Google avatars
-  "img-src 'self' data: blob: https://res.cloudinary.com https://lh3.googleusercontent.com https://lh4.googleusercontent.com https://lh5.googleusercontent.com https://lh6.googleusercontent.com",
+  "img-src 'self' data: blob: https://res.cloudinary.com https://lh3.googleusercontent.com https://lh4.googleusercontent.com https://lh5.googleusercontent.com https://lh6.googleusercontent.com https://*.razorpay.com",
 
   // XHR/Fetch: self + Google OAuth token endpoints + Razorpay API + Postal Pincode
-  "connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com https://api.razorpay.com https://lumberjack.razorpay.com https://api.postalpincode.in",
+  "connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com https://api.razorpay.com https://lumberjack.razorpay.com https://lumberjack-cx.razorpay.com https://*.razorpay.com https://api.postalpincode.in",
 
   // Frames: Google OAuth popup + Razorpay checkout iframe
-  "frame-src https://accounts.google.com https://api.razorpay.com https://checkout.razorpay.com",
+  "frame-src https://accounts.google.com https://api.razorpay.com https://checkout.razorpay.com https://*.razorpay.com",
 
   // Block all plugins (Flash etc.)
   "object-src 'none'",
