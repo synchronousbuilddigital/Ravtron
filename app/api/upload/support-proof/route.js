@@ -26,7 +26,7 @@ export async function POST(request) {
   try {
     // 1. IP Rate Limiting (5 uploads per 10 minutes per IP)
     const clientIp = getClientIp(request);
-    const limitCheck = rateLimit(`support_upload_${clientIp}`, 5, 10 * 60 * 1000);
+    const limitCheck = await rateLimit(`support_upload_${clientIp}`, 5, 10 * 60 * 1000);
     if (!limitCheck.success) {
       logSecurityEvent("SUPPORT_UPLOAD_RATE_LIMIT_EXCEEDED", { ip: clientIp });
       return NextResponse.json(

@@ -11,7 +11,7 @@ const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 export async function POST(request) {
   try {
     const clientIp = getClientIp(request);
-    const rateCheck = rateLimit(`forgot_pass_${clientIp}`, 3, 15 * 60 * 1000); // 3 attempts per 15 mins
+    const rateCheck = await rateLimit(`forgot_pass_${clientIp}`, 3, 15 * 60 * 1000); // 3 attempts per 15 mins
     if (!rateCheck.success) {
       logSecurityEvent("FORGOT_PASSWORD_RATE_LIMIT_EXCEEDED", { ip: clientIp });
       return NextResponse.json(

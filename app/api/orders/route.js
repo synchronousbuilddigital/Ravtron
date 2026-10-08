@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Order from "@/models/Order";
 import { verifyAdmin, verifyUser } from "@/lib/auth";
 import { getCachedOrders, setCachedOrders } from "@/lib/cache";
+import { verifyCsrfOrigin } from "@/lib/csrf";
 
 export async function GET(request) {
   try {
@@ -39,7 +40,10 @@ export async function GET(request) {
   }
 }
 
-export async function POST() {
+export async function POST(request) {
+  const csrf = verifyCsrfOrigin(request);
+  if (!csrf.ok) return csrf.response;
+
   return NextResponse.json(
     { error: "Cash on Delivery is not supported. All orders must be placed and paid securely online via Razorpay." },
     { status: 400 }

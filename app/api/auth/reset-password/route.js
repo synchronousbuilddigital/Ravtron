@@ -8,7 +8,7 @@ import { rateLimit, getClientIp } from "@/lib/rateLimit";
 export async function POST(request) {
   try {
     const clientIp = getClientIp(request);
-    const rateCheck = rateLimit(`reset_pass_${clientIp}`, 5, 60 * 1000);
+    const rateCheck = await rateLimit(`reset_pass_${clientIp}`, 5, 60 * 1000);
     if (!rateCheck.success) {
       return NextResponse.json(
         { error: "Too many reset attempts. Please wait 1 minute." },

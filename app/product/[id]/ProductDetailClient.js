@@ -9,6 +9,7 @@ import Image from "next/image";
 import Footer from "../../../components/Footer";
 import SearchModal from "../../../components/SearchModal";
 import CartDrawer from "../../../components/CartDrawer";
+import PincodeCheckerWidget from "../../../components/PincodeCheckerWidget";
 import { Star, Package, Zap, ShieldCheck } from "lucide-react";
 import { ProductJsonLd, BreadcrumbJsonLd } from "../../../components/JsonLd";
 
@@ -63,6 +64,9 @@ export default function ProductDetailPage({ params }) {
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [pincodeStatus, setPincodeStatus] = useState(null);
+  const [pincodeHighlight, setPincodeHighlight] = useState(false);
+
 
   const breadcrumbItems = product ? [
     { name: "Home", url: "/" },
@@ -274,6 +278,20 @@ export default function ProductDetailPage({ params }) {
   const brandText = isSage ? "text-[#3674B5]" : isSand ? "text-[#DEC89E]" : "text-[#3674B5]";
 
   const handleAdd = () => {
+
+
+    if (!pincodeStatus || !pincodeStatus.checked) {
+      setPincodeHighlight(true);
+      showToast("Please check your delivery pincode first to verify availability.", "info");
+      setTimeout(() => setPincodeHighlight(false), 3000);
+      return;
+    }
+
+    if (!pincodeStatus.available) {
+      showToast(`Delivery is not available for pincode ${pincodeStatus.pin}. Purchase cannot be completed.`, "error");
+      return;
+    }
+
     addToCart({ 
       ...product, 
       price: displayPrice, 
@@ -285,6 +303,18 @@ export default function ProductDetailPage({ params }) {
   };
 
   const handleBuyNow = () => {
+    if (!pincodeStatus || !pincodeStatus.checked) {
+      setPincodeHighlight(true);
+      showToast("Please check your delivery pincode first before buying.", "info");
+      setTimeout(() => setPincodeHighlight(false), 3000);
+      return;
+    }
+
+    if (!pincodeStatus.available) {
+      showToast(`Delivery is not available for pincode ${pincodeStatus.pin}. Purchase cannot be completed.`, "error");
+      return;
+    }
+
     if (!existingCartItem) {
       addToCart({ 
         ...product, 
@@ -297,6 +327,7 @@ export default function ProductDetailPage({ params }) {
     }
     router.push("/checkout");
   };
+
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
@@ -343,24 +374,28 @@ export default function ProductDetailPage({ params }) {
       {/* Dynamic Header Navbar */}
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 relative z-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 sm:pt-4 md:pt-6 pb-24 relative z-10">
 
-        {/* Back navigation */}
-        <div className="pb-8">
+        {/* Sleek, Precise Back Navigation */}
+        <div className="mb-2 sm:mb-4 flex items-center justify-between">
           <button
-            onClick={() => router.push("/shop")}
-            className="group inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-[#1E293B]/50 hover:text-[#1E293B] transition-all bg-white border border-[#1E293B]/10 rounded-full px-5 py-2.5 hover-lift shadow-2xs"
+            onClick={() => (typeof window !== "undefined" && window.history.length > 1 ? router.back() : router.push("/shop"))}
+            className="group inline-flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 rounded-full bg-white border border-slate-200/90 text-[#1E293B] hover:text-[#3674B5] hover:border-[#3674B5]/40 hover:bg-slate-50 transition-all shadow-2xs active:scale-95"
+            title="Go back"
+            aria-label="Go back"
           >
-            <span className="group-hover:-translate-x-1.5 transition-transform duration-300">←</span>
-            <span>Back to Shop</span>
+            <svg className="w-4 h-4 text-[#1E293B] group-hover:text-[#3674B5] group-hover:-translate-x-0.5 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="hidden sm:inline text-xs font-bold text-slate-600 group-hover:text-[#3674B5]">Back</span>
           </button>
         </div>
 
         {/* Two-Column Details Showcase */}
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-start">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-16 items-start">
 
           {/* Left Column: Image Gallery Showcase (White Outer Frame with Inner Rounded Grey Square) */}
-          <div className="w-full lg:w-1/2 bg-white border border-[#1E293B]/10 rounded-3xl md:rounded-[2.5rem] p-4 sm:p-6 md:p-8 flex flex-col justify-between relative shadow-sm">
+          <div className="w-full lg:w-1/2 bg-white border border-[#1E293B]/10 rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] p-3.5 sm:p-6 md:p-8 flex flex-col justify-between relative shadow-sm">
 
             {/* Inner Rounded Grey Square Container */}
             <div className="w-full aspect-square relative rounded-2xl md:rounded-3xl bg-[#ECEEF0] overflow-hidden group flex items-center justify-center">
@@ -621,77 +656,90 @@ export default function ProductDetailPage({ params }) {
               <div className="w-full pt-1">
                 <button
                   disabled
-                  className="w-full h-12 sm:h-14 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-extrabold uppercase tracking-widest cursor-not-allowed flex items-center justify-center gap-2 shadow-2xs"
+                  className="w-full h-12 sm:h-14 rounded-2xl bg-slate-100 border border-slate-200 text-slate-400 text-xs font-extrabold uppercase tracking-widest cursor-not-allowed flex items-center justify-center gap-2 shadow-2xs"
                 >
-                  <svg className="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                   </svg>
                   <span>Currently Out of Stock</span>
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 pt-1">
-                {/* Add to Bag Button with inline Minus/Plus when in cart */}
-                {cartItemQty > 0 ? (
-                  <div 
-                    className="flex-1 h-12 sm:h-14 px-1 sm:px-3 rounded-2xl bg-[#3674B5] text-white font-extrabold shadow-md flex items-center justify-between border-2 border-[#3674B5] shrink-0 min-w-0"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        updateQuantity(product.id, -1);
-                      }}
-                      className="w-5.5 h-5.5 xs:w-6 xs:h-6 sm:w-8 sm:h-8 rounded-md xs:rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center cursor-pointer text-xs sm:text-base font-black shrink-0"
-                      aria-label="Decrease quantity"
-                      title="Decrease quantity"
+              /* Action Buttons */
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4">
+                  {/* Add to Bag Button with inline Minus/Plus when in cart */}
+                  {cartItemQty > 0 ? (
+                    <div 
+                      className="flex-1 h-12 sm:h-14 px-1 sm:px-3 rounded-2xl bg-[#3674B5] text-white font-extrabold shadow-md flex items-center justify-between border-2 border-[#3674B5] shrink-0 min-w-0"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      −
-                    </button>
-                    <span className="text-[10px] xs:text-[11px] sm:text-xs md:text-sm font-extrabold uppercase tracking-wider flex items-center justify-center gap-0.5 sm:gap-1.5 select-none whitespace-nowrap px-0.5 min-w-0">
-                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 hidden xs:inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateQuantity(product.id, -1);
+                        }}
+                        className="w-5.5 h-5.5 xs:w-6 xs:h-6 sm:w-8 sm:h-8 rounded-md xs:rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center cursor-pointer text-xs sm:text-base font-black shrink-0"
+                        aria-label="Decrease quantity"
+                        title="Decrease quantity"
+                      >
+                        −
+                      </button>
+                      <span className="text-[10px] xs:text-[11px] sm:text-xs md:text-sm font-extrabold uppercase tracking-wider flex items-center justify-center gap-0.5 sm:gap-1.5 select-none whitespace-nowrap px-0.5 min-w-0">
+                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 hidden xs:inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                        <span>In Bag ({cartItemQty})</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addToCart(product, 1);
+                        }}
+                        className="w-5.5 h-5.5 xs:w-6 xs:h-6 sm:w-8 sm:h-8 rounded-md xs:rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center cursor-pointer text-xs sm:text-base font-black shrink-0"
+                        aria-label="Increase quantity"
+                        title="Increase quantity"
+                      >
+                        +
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleAdd}
+                      className="flex-1 h-12 sm:h-14 rounded-2xl border-2 border-[#1E293B] hover:bg-[#F8F9FA] text-[#1E293B] text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-1.5 sm:gap-2 shrink-0 min-w-0 cursor-pointer"
+                    >
+                      <svg className="w-4 h-4 md:w-4.5 md:h-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                       </svg>
-                      <span>In Bag ({cartItemQty})</span>
-                    </span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addToCart(product, 1);
-                      }}
-                      className="w-5.5 h-5.5 xs:w-6 xs:h-6 sm:w-8 sm:h-8 rounded-md xs:rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center cursor-pointer text-xs sm:text-base font-black shrink-0"
-                      aria-label="Increase quantity"
-                      title="Increase quantity"
-                    >
-                      +
+                      <span className="whitespace-nowrap">Add to Bag</span>
                     </button>
-                  </div>
-                ) : (
+                  )}
+
+                  {/* Buy Now Button */}
                   <button
-                    onClick={handleAdd}
-                    className="flex-1 h-12 sm:h-14 rounded-2xl border-2 border-[#1E293B] hover:bg-[#F8F9FA] text-[#1E293B] text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-1.5 sm:gap-2 shrink-0 min-w-0"
+                    onClick={handleBuyNow}
+                    className="flex-1 h-12 sm:h-14 rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-1.5 sm:gap-2 shadow-lg shadow-[#3674B5]/20 shrink-0 min-w-0 cursor-pointer"
                   >
                     <svg className="w-4 h-4 md:w-4.5 md:h-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                    <span className="whitespace-nowrap">Add to Bag</span>
+                    <span className="whitespace-nowrap">Buy Now</span>
                   </button>
-                )}
-
-                {/* Buy Now Button */}
-                <button
-                  onClick={handleBuyNow}
-                  className="flex-1 h-12 sm:h-14 rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-1.5 sm:gap-2 shadow-lg shadow-[#1A1917]/10 shrink-0 min-w-0"
-                >
-                  <svg className="w-4 h-4 md:w-4.5 md:h-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  <span className="whitespace-nowrap">Buy Now</span>
-                </button>
+                </div>
               </div>
             )}
+
+            {/* Pincode Delivery Availability Checker (Positioned below Add to Bag & Buy Now) */}
+            <div className="pt-2">
+              <PincodeCheckerWidget 
+                onStatusChange={setPincodeStatus} 
+                highlightNeeded={pincodeHighlight}
+              />
+            </div>
+
+
           </div>
         </div>
 
@@ -752,7 +800,7 @@ export default function ProductDetailPage({ params }) {
               <div className="space-y-3.5 animate-fade-in-up text-sm text-left">
                 <div className="flex items-start gap-2.5">
                   <Package className="w-4 h-4 text-[#3674B5] mt-0.5 flex-shrink-0" />
-                  <p><strong className="text-[#1E293B]">Standard Free Delivery</strong> on all order totals across India.</p>
+                  <p><strong className="text-[#1E293B]">Standard Delivery:</strong> Free shipping on orders ₹300 and above. Flat ₹99 for orders under ₹300.</p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <Zap className="w-4 h-4 text-[#3674B5] mt-0.5 flex-shrink-0" />

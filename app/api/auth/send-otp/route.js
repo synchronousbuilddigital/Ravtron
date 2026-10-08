@@ -12,7 +12,7 @@ const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 export async function POST(request) {
   try {
     const clientIp = getClientIp(request);
-    const rateCheck = rateLimit(`send_otp_${clientIp}`, 3, 60 * 1000);
+    const rateCheck = await rateLimit(`send_otp_${clientIp}`, 3, 60 * 1000);
     if (!rateCheck.success) {
       return NextResponse.json(
         { error: "Too many OTP requests. Please wait 1 minute before trying again." },

@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pincode Delivery Availability Checker | PowerHub & RAVTRON</title>
+  <meta name="description" content="Check live delivery availability across 2,300+ pincodes and 1,160+ delivery centers across India. Real-time courier network status." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #090d16;
+      --bg-card: rgba(18, 24, 38, 0.7);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: #3b82f6;
+      --primary: #2563eb;
+      --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      --accent: #06b6d4;
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.12);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.12);
+      --warning: #f59e0b;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Ambient background glows */
+    .glow-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .glow-1 {
+      position: absolute;
+      top: -150px;
+      left: 20%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.18) 0%, rgba(0,0,0,0) 70%);
+      filter: blur(60px);
+    }
+    .glow-2 {
+      position: absolute;
+      bottom: -100px;
+      right: 15%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, rgba(0,0,0,0) 70%);
+      filter: blur(60px);
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--primary-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+    .brand-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .brand-title span {
+      color: #60a5fa;
+    }
+    .badge-network {
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge-network::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #10b981;
+      animation: blink 2s infinite ease-in-out;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 4.5vw, 44px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+    .hero h1 span {
+      background: linear-gradient(135deg, #60a5fa, #38bdf8, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Stats bar */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      backdrop-filter: blur(16px);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    .stat-val {
+      font-size: 28px;
+      font-weight: 800;
+      color: #60a5fa;
+      line-height: 1.1;
+    }
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* Search & Filter Controls */
+    .search-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      backdrop-filter: blur(16px);
+      margin-bottom: 32px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+    .input-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .search-input-group {
+      flex: 1;
+      min-width: 260px;
+      position: relative;
+    }
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      font-size: 18px;
+      pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      background: rgba(10, 15, 26, 0.8);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px 14px 44px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 16px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+      background: rgba(10, 15, 26, 1);
+    }
+    .search-input::placeholder {
+      color: var(--text-dim);
+    }
+
+    .state-select {
+      background: rgba(10, 15, 26, 0.8);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 15px;
+      outline: none;
+      cursor: pointer;
+      min-width: 180px;
+      transition: border-color 0.2s;
+    }
+    .state-select:focus {
+      border-color: var(--border-focus);
+    }
+    .state-select option {
+      background: #0f172a;
+      color: #f8fafc;
+    }
+
+    .clear-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      padding: 0 18px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .clear-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--text);
+    }
+
+    /* Popular Pincode Chips */
+    .quick-chips {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .chips-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+      margin-right: 4px;
+    }
+    .chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 13px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .chip:hover {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: rgba(59, 130, 246, 0.4);
+      color: #93c5fd;
+      transform: translateY(-1px);
+    }
+
+    /* Results container */
+    .results-section {
+      min-height: 240px;
+    }
+
+    /* Available State Card */
+    .result-banner {
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      animation: fadeIn 0.3s ease-out;
+    }
+    .result-banner.success {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(6, 182, 212, 0.08) 100%);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .result-banner.error {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.05) 100%);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .banner-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .banner-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .result-banner.success .banner-icon {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+    }
+    .result-banner.error .banner-icon {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+    }
+    .banner-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .banner-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .status-tag {
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    .status-tag.success {
+      background: #10b981;
+      color: #ffffff;
+    }
+    .status-tag.error {
+      background: #ef4444;
+      color: #ffffff;
+    }
+
+    /* Center Cards List */
+    .centers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 16px;
+      animation: fadeIn 0.4s ease-out;
+    }
+    .center-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      backdrop-filter: blur(12px);
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .center-card:hover {
+      border-color: rgba(59, 130, 246, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .hub-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .card-heading {
+      flex: 1;
+    }
+    .center-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .center-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pin-badge {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-weight: 600;
+      color: #93c5fd;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    
+    .areas-box {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .areas-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .area-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-height: 110px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .area-tags::-webkit-scrollbar {
+      width: 4px;
+    }
+    .area-tags::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+    .tag {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Empty & Loading states */
+    .empty-card {
+      text-align: center;
+      padding: 60px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(12px);
+    }
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.8;
+    }
+    .empty-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .empty-sub {
+      font-size: 14px;
+      color: var(--text-muted);
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 640px) {
+      .stats-container {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .input-row {
+        flex-direction: column;
+      }
+      .result-banner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .status-tag {
+        align-self: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="glow-bg">
+  <div class="glow-1"></div>
+  <div class="glow-2"></div>
+</div>
+
+<div class="wrapper">
+  <!-- Header -->
+  <header>
+    <a href="/" class="brand">
+      <div class="brand-icon">⚡</div>
+      <div class="brand-title">Power<span>Hub</span> Network</div>
+    </a>
+    <div class="badge-network">Live Network</div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1>Check Pincode <span>Delivery Coverage</span></h1>
+    <p>Verify instant shipping and courier availability across 2,300+ pincodes and 1,160+ centers nationwide.</p>
+  </section>
+
+  <!-- Stats -->
+  <div class="stats-container">
+    <div class="stat-card">
+      <div class="stat-val" id="stat-pincodes">2,315</div>
+      <div class="stat-label">Serviceable Pincodes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="stat-centers">1,165</div>
+      <div class="stat-label">Delivery Hubs & Centers</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="stat-states">31</div>
+      <div class="stat-label">States & Union Territories</div>
+    </div>
+  </div>
+
+  <!-- Search & Filter Controls -->
+  <div class="search-card">
+    <div class="input-row">
+      <div class="search-input-group">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          id="search-box" 
+          class="search-input" 
+          placeholder="Enter 6-digit Pincode, City, or Center name (e.g. 110001, Pune, Delhi)..." 
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+      <select id="state-select" class="state-select">
+        <option value="">All States / UTs</option>
+      </select>
+      <button id="clear-btn" class="clear-btn" onclick="clearSearch()">Clear</button>
+    </div>
+
+    <div class="quick-chips">
+      <span class="chips-label">Popular:</span>
+      <span class="chip" onclick="searchPin('110001')">110001 · Delhi</span>
+      <span class="chip" onclick="searchPin('400001')">400001 · Mumbai</span>
+      <span class="chip" onclick="searchPin('560001')">560001 · Bengaluru</span>
+      <span class="chip" onclick="searchPin('380001')">380001 · Ahmedabad</span>
+      <span class="chip" onclick="searchPin('411001')">411001 · Pune</span>
+      <span class="chip" onclick="searchPin('700001')">700001 · Kolkata</span>
+      <span class="chip" onclick="searchPin('500001')">500001 · Hyderabad</span>
+      <span class="chip" onclick="searchPin('600001')">600001 · Chennai</span>
+    </div>
+  </div>
+
+  <!-- Results Section -->
+  <div class="results-section" id="results-container">
+    <div class="empty-card">
+      <div class="empty-icon">📍</div>
+      <div class="empty-title">Enter a Pincode or Search Area</div>
+      <div class="empty-sub">Type any 6-digit Indian Postal Code or City name above to check if doorstep courier delivery is available.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let pincodeData = {};
+let allStates = [];
+
+async function loadData() {
+  try {
+    const res = await fetch('/pincodes.json');
+    if (res.ok) {
+      pincodeData = await res.json();
+      initApp();
+    } else {
+      throw new Error('Could not fetch data file');
+    }
+  } catch (err) {
+    console.error('Error loading data:', err);
+    document.getElementById('results-container').innerHTML = `
+      <div class="empty-card">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-title">Error Loading Network Data</div>
+        <div class="empty-sub">Please refresh the page to retry loading the delivery center network.</div>
+      </div>
+    `;
+  }
+}
+
+function initApp() {
+  const pinKeys = Object.keys(pincodeData);
+  const statesSet = new Set();
+  const centersSet = new Set();
+
+  pinKeys.forEach(pin => {
+    pincodeData[pin].forEach(item => {
+      if (item.state) statesSet.add(item.state);
+      if (item.center) centersSet.add(item.center);
+    });
+  });
+
+  allStates = Array.from(statesSet).sort();
+
+  document.getElementById('stat-pincodes').textContent = pinKeys.length.toLocaleString('en-IN');
+  document.getElementById('stat-centers').textContent = centersSet.size.toLocaleString('en-IN');
+  document.getElementById('stat-states').textContent = allStates.length.toLocaleString('en-IN');
+
+  const select = document.getElementById('state-select');
+  allStates.forEach(st => {
+    const opt = document.createElement('option');
+    opt.value = st;
+    opt.textContent = st;
+    select.appendChild(opt);
+  });
+
+  // Attach event listeners
+  const input = document.getElementById('search-box');
+  input.addEventListener('input', () => handleSearch());
+  select.addEventListener('change', () => handleSearch());
+
+  // Check URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const q = urlParams.get('pincode') || urlParams.get('q');
+  if (q) {
+    input.value = q;
+    handleSearch();
+  }
+}
+
+function searchPin(pin) {
+  const input = document.getElementById('search-box');
+  input.value = pin;
+  handleSearch();
+  input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function clearSearch() {
+  document.getElementById('search-box').value = '';
+  document.getElementById('state-select').value = '';
+  handleSearch();
+}
+
+function handleSearch() {
+  const query = document.getElementById('search-box').value.trim().toUpperCase();
+  const stateFilter = document.getElementById('state-select').value;
+  const container = document.getElementById('results-container');
+
+  if (!query && !stateFilter) {
+    container.innerHTML = `
+      <div class="empty-card">
+        <div class="empty-icon">📍</div>
+        <div class="empty-title">Enter a Pincode or Search Area</div>
+        <div class="empty-sub">Type any 6-digit Indian Postal Code or City name above to check if doorstep courier delivery is available.</div>
+      </div>
+    `;
+    return;
+  }
+
+  // Check direct pincode match first
+  const isExactPin = /^\d{6}$/.test(query);
+
+  let matches = [];
+
+  if (isExactPin) {
+    if (pincodeData[query]) {
+      matches = pincodeData[query].map(c => ({ ...c, pincode: query }));
+    }
+  } else {
+    // Search across pincodes, centers, states, and areas
+    const keys = Object.keys(pincodeData);
+    for (const pin of keys) {
+      const centers = pincodeData[pin];
+      for (const c of centers) {
+        if (stateFilter && c.state !== stateFilter) continue;
+
+        const pinMatch = pin.includes(query);
+        const centerMatch = c.center && c.center.toUpperCase().includes(query);
+        const stateMatch = c.state && c.state.toUpperCase().includes(query);
+        const areaMatch = c.areas && c.areas.some(a => a.toUpperCase().includes(query));
+
+        if (!query || pinMatch || centerMatch || stateMatch || areaMatch) {
+          matches.push({ ...c, pincode: pin });
+        }
+      }
+    }
+  }
+
+  if (matches.length === 0) {
+    container.innerHTML = `
+      <div class="result-banner error">
+        <div class="banner-left">
+          <div class="banner-icon">✕</div>
+          <div>
+            <div class="banner-title">${isExactPin ? `Pincode ${query} Not Serviceable` : 'No Delivery Centers Found'}</div>
+            <div class="banner-desc">${isExactPin ? 'Sorry, our standard direct delivery is currently unavailable for this pincode.' : 'Try adjusting your search keywords or state filter.'}</div>
+          </div>
+        </div>
+        <div class="status-tag error">Unavailable</div>
+      </div>
+    `;
+    return;
+  }
+
+  // Build Results
+  let bannerHtml = '';
+  if (isExactPin) {
+    bannerHtml = `
+      <div class="result-banner success">
+        <div class="banner-left">
+          <div class="banner-icon">✓</div>
+          <div>
+            <div class="banner-title">Delivery Available for Pincode ${query}</div>
+            <div class="banner-desc">Serviceable via ${matches.length} delivery center hub${matches.length > 1 ? 's' : ''} in ${matches[0].state || 'India'}.</div>
+          </div>
+        </div>
+        <div class="status-tag success">Serviceable</div>
+      </div>
+    `;
+  } else {
+    bannerHtml = `
+      <div class="result-banner success">
+        <div class="banner-left">
+          <div class="banner-icon">✓</div>
+          <div>
+            <div class="banner-title">Found ${matches.length} Serviceable Result${matches.length > 1 ? 's' : ''}</div>
+            <div class="banner-desc">Showing delivery centers matching "${query || stateFilter}".</div>
+          </div>
+        </div>
+        <div class="status-tag success">Verified Network</div>
+      </div>
+    `;
+  }
+
+  // Center Cards
+  const cardsHtml = matches.slice(0, 100).map(item => {
+    const areaTags = item.areas && item.areas.length > 0
+      ? item.areas.map(a => `<span class="tag">${a}</span>`).join('')
+      : '<span class="tag">Standard Direct Delivery</span>';
+
+    return `
+      <div class="center-card">
+        <div>
+          <div class="card-top">
+            <div class="hub-badge">🏢</div>
+            <div class="card-heading">
+              <div class="center-name">${item.center}</div>
+              <div class="center-sub">
+                <span>📍 ${item.state || 'India'}</span>
+                <span class="pin-badge">${item.pincode}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="areas-box">
+            <div class="areas-title">
+              <span>Coverage & Landmark Areas</span>
+              <span>${item.areas ? item.areas.length : 0} tags</span>
+            </div>
+            <div class="area-tags">
+              ${areaTags}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const countNotice = matches.length > 100 
+    ? `<div style="text-align:center; margin-top:20px; color:var(--text-muted); font-size:13px;">Showing first 100 matching centers. Refine your query for more precise results.</div>`
+    : '';
+
+  container.innerHTML = bannerHtml + `<div class="centers-grid">${cardsHtml}</div>` + countNotice;
+}
+
+loadData();
+</script>
+</body>
+</html>

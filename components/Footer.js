@@ -15,6 +15,7 @@ export default function Footer() {
 
   const supportLinks = [
     { name: "Track Order", href: "/support?tab=track" },
+    { name: "Check Pincode Delivery", href: "/pincode-checker" },
     { name: "Shipping & Delivery", href: "/shipping-policy" },
     { name: "Warranty Claim", href: "/support?tab=warranty" },
     { name: "Frequently Asked Questions", href: "/support?tab=faq" },

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
 import { useCart } from "../context/CartContext";
@@ -32,6 +32,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import SearchModal from "../../components/SearchModal";
 import CartDrawer from "../../components/CartDrawer";
+import { calculateDeliveryCharge } from "../../lib/shipping";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -89,8 +90,10 @@ export default function CheckoutPage() {
   // Net Banking State
   const [selectedBank, setSelectedBank] = useState("sbi");
 
-  // Real payment state
+  // Real payment state & double-click protection locks
   const [isProcessing, setIsProcessing] = useState(false);
+  const isSubmittingRef = useRef(false);
+  const idempotencyKeyRef = useRef(null);
   const [paymentResult, setPaymentResult] = useState(null); // null | "success" | "failure"
   const [createdOrder, setCreatedOrder] = useState(null);
   const [paymentError, setPaymentError] = useState("");
@@ -141,6 +144,42 @@ export default function CheckoutPage() {
   };
 
   const [isFetchingPin, setIsFetchingPin] = useState(false);
+  const [shippingPinStatus, setShippingPinStatus] = useState(null); // { checked: bool, isServiceable: bool, pin: string, center?: string, state?: string }
+
+  const checkPinServiceability = async (cleanPin) => {
+    if (!cleanPin || cleanPin.length !== 6) {
+      setShippingPinStatus(null);
+      return null;
+    }
+    try {
+      const res = await fetch(`/api/pincode/${cleanPin}`);
+      const data = await res.json();
+      const statusObj = {
+        checked: true,
+        isServiceable: Boolean(data.isServiceable),
+        pin: cleanPin,
+        city: data.city || data.center || "",
+        state: data.state || "",
+        center: data.center || ""
+      };
+      setShippingPinStatus(statusObj);
+      return statusObj;
+    } catch (err) {
+      console.error("Serviceability check error:", err);
+      const fallback = { checked: true, isServiceable: false, pin: cleanPin };
+      setShippingPinStatus(fallback);
+      return fallback;
+    }
+  };
+
+  useEffect(() => {
+    const cleanPin = (shippingForm.zip || "").replace(/\D/g, "");
+    if (cleanPin.length === 6) {
+      checkPinServiceability(cleanPin);
+    } else {
+      setShippingPinStatus(null);
+    }
+  }, [shippingForm.zip]);
 
   const handlePincodeLookup = async (pincodeVal, targetForm = "new") => {
     const cleanPin = pincodeVal.replace(/\D/g, "");
@@ -149,8 +188,8 @@ export default function CheckoutPage() {
       try {
         const res = await fetch(`/api/pincode/${cleanPin}`);
         const data = await res.json();
-        if (data.success && (data.city || data.state)) {
-          const detectedCity = data.city || "";
+        if (data.success && (data.city || data.state || data.center)) {
+          const detectedCity = data.city || data.center || "";
           const detectedState = data.state || "";
 
           if (targetForm === "new") {
@@ -166,7 +205,12 @@ export default function CheckoutPage() {
               state: detectedState
             }));
           }
-          showToast(`Auto-detected: ${detectedCity}, ${detectedState}`);
+
+          if (data.isServiceable) {
+            showToast(`Auto-detected: ${detectedCity}, ${detectedState} (Serviceable Hub: ${data.center || detectedCity})`);
+          } else {
+            showToast(`Notice: Pincode ${cleanPin} is not in our serviceable delivery network.`, "error");
+          }
         }
       } catch (e) {
         console.error("PIN code lookup error", e);
@@ -176,11 +220,22 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleSaveNewAddress = (e) => {
+  const handleSaveNewAddress = async (e) => {
     e.preventDefault();
     if (!newAddressForm.street || !newAddressForm.city || !newAddressForm.state || !newAddressForm.zip) {
       showToast("Please fill in all required address fields", "error");
       return;
+    }
+
+    const cleanPin = (newAddressForm.zip || "").replace(/\D/g, "");
+    if (cleanPin.length !== 6) {
+      showToast("Please enter a valid 6-digit PIN code", "error");
+      return;
+    }
+
+    const pinCheck = await checkPinServiceability(cleanPin);
+    if (pinCheck && !pinCheck.isServiceable) {
+      showToast(`Warning: Pincode ${cleanPin} is outside our delivery network.`, "error");
     }
 
     const newId = "addr_" + Date.now();
@@ -189,10 +244,10 @@ export default function CheckoutPage() {
       tag: newAddressForm.tag || "Home",
       name: newAddressForm.name || contactForm.name || currentUser?.name || "Customer",
       phone: newAddressForm.phone || contactForm.phone || "",
-      street: newAddressForm.street,
-      city: newAddressForm.city,
-      state: newAddressForm.state,
-      zip: newAddressForm.zip,
+      street: newAddressForm.street.trim(),
+      city: newAddressForm.city.trim(),
+      state: newAddressForm.state.trim(),
+      zip: cleanPin,
       country: newAddressForm.country || "India"
     };
 
@@ -215,6 +270,7 @@ export default function CheckoutPage() {
     });
     showToast("New delivery address saved!");
   };
+
 
   // Load user details and addresses
   useEffect(() => {
@@ -318,7 +374,7 @@ export default function CheckoutPage() {
     return true;
   };
 
-  const validateStep2 = () => {
+  const validateStep2 = async () => {
     // Case 1: User is filling in a new address form
     if (isAddingNewAddress) {
       if (!newAddressForm.street || !newAddressForm.street.trim()) {
@@ -334,12 +390,19 @@ export default function CheckoutPage() {
         return false;
       }
       const pinDigits = (newAddressForm.zip || "").replace(/\D/g, "");
-      if (!newAddressForm.zip || !newAddressForm.zip.trim() || pinDigits.length < 5) {
-        showToast("Please enter a valid postal code.", "error");
+      if (!newAddressForm.zip || !newAddressForm.zip.trim() || pinDigits.length !== 6) {
+        showToast("Please enter a valid 6-digit postal PIN code.", "error");
         return false;
       }
       if (newAddressForm.phone && newAddressForm.phone.replace(/\D/g, "").length < 10) {
         showToast("Please enter a valid 10-digit phone number.", "error");
+        return false;
+      }
+
+      // Check delivery serviceability
+      const pinCheck = await checkPinServiceability(pinDigits);
+      if (pinCheck && !pinCheck.isServiceable) {
+        showToast(`Delivery is currently unavailable for pincode ${pinDigits}. Please enter a serviceable address.`, "error");
         return false;
       }
 
@@ -353,7 +416,7 @@ export default function CheckoutPage() {
         street: newAddressForm.street.trim(),
         city: newAddressForm.city.trim(),
         state: newAddressForm.state.trim(),
-        zip: newAddressForm.zip.trim(),
+        zip: pinDigits,
         country: newAddressForm.country || "India"
       };
 
@@ -381,10 +444,18 @@ export default function CheckoutPage() {
       return false;
     }
     const pinDigits = (shippingForm.zip || "").replace(/\D/g, "");
-    if (!shippingForm.zip || !shippingForm.zip.trim() || pinDigits.length < 5) {
-      showToast("Please enter a valid postal code.", "error");
+    if (!shippingForm.zip || !shippingForm.zip.trim() || pinDigits.length !== 6) {
+      showToast("Please enter a valid 6-digit postal PIN code.", "error");
       return false;
     }
+
+    // Check delivery serviceability
+    const pinCheck = await checkPinServiceability(pinDigits);
+    if (pinCheck && !pinCheck.isServiceable) {
+      showToast(`Delivery is not available for pincode ${pinDigits}. Cannot proceed with purchase.`, "error");
+      return false;
+    }
+
     return true;
   };
 
@@ -396,12 +467,14 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleContinueToPayment = (e) => {
+  const handleContinueToPayment = async (e) => {
     e.preventDefault();
-    if (validateStep2()) {
+    const isValid = await validateStep2();
+    if (isValid) {
       setCurrentStep(3);
     }
   };
+
 
   // Form Input Helpers
   const handleContactChange = (e) => {
@@ -438,10 +511,8 @@ export default function CheckoutPage() {
 
   // Pricing calculations
   const subtotal = getSubtotal();
-  const deliveryCharge = deliveryPref === "express" ? 199 : subtotal > 999 ? 0 : 99;
-  const taxableAmount = Math.max(0, subtotal - discount);
-  const taxAmount = Math.round(taxableAmount * 0.18); // 18% GST
-  const grandTotal = taxableAmount + deliveryCharge + taxAmount;
+  const deliveryCharge = calculateDeliveryCharge(subtotal);
+  const grandTotal = Math.max(0, subtotal - discount) + deliveryCharge;
 
   // ─── Load Razorpay checkout.js SDK dynamically ──────────────────────────
   const loadRazorpayScript = () => {
@@ -499,12 +570,10 @@ export default function CheckoutPage() {
 
   // ─── Razorpay: open popup and handle real payment ─────────────────────────
   const handleRazorpayPayment = async () => {
-    setIsProcessing(true);
-    setPaymentError("");
-
     // 1. Dynamically ensure Razorpay SDK is ready
     const loaded = await loadRazorpayScript();
     if (!loaded || typeof window === "undefined" || typeof window.Razorpay !== "function") {
+      isSubmittingRef.current = false;
       setIsProcessing(false);
       const errMsg = "Payment gateway could not be loaded. Please disable ad-blockers or refresh the page.";
       setPaymentError(errMsg);
@@ -513,11 +582,21 @@ export default function CheckoutPage() {
     }
 
     try {
+      // Generate or retrieve session-scoped idempotency key for this checkout attempt
+      if (!idempotencyKeyRef.current) {
+        idempotencyKeyRef.current = `idem_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      }
+      const idempotencyKey = idempotencyKeyRef.current;
+
       // 2. Create a Razorpay order on the server
       const createRes = await fetch("/api/payment/create-order", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey
+        },
         body: JSON.stringify({
+          idempotencyKey,
           // Send items so the server can recalculate the true amount from DB prices
           items: cart.map(item => ({
             productId: item.id,
@@ -528,8 +607,12 @@ export default function CheckoutPage() {
           coupon: coupon || "",
           currency: "INR",
           notes: {
-            customerName: contactForm.name,
-            customerPhone: contactForm.phone
+            customerName: contactForm.name || "",
+            customerPhone: contactForm.phone || "",
+            shippingStreet: shippingForm.street || "",
+            shippingCity: shippingForm.city || "",
+            shippingState: shippingForm.state || "",
+            shippingZip: (shippingForm.zip || "").replace(/\D/g, "").slice(0, 6)
           }
         })
       });
@@ -609,6 +692,7 @@ export default function CheckoutPage() {
             setCreatedOrder(verifyData.order);
             setPaymentResult("success");
             clearCart();
+            idempotencyKeyRef.current = null;
             showToast("Payment Successful! Order Confirmed.", "success");
           } catch (verifyErr) {
             console.error("[PAYMENT] Verify error:", verifyErr);
@@ -616,12 +700,14 @@ export default function CheckoutPage() {
             setPaymentResult("failure");
             showToast(verifyErr.message || "Order confirmation failed", "error");
           } finally {
+            isSubmittingRef.current = false;
             setIsProcessing(false);
           }
         },
         // ── Modal dismissed / payment cancelled ────────────────────────────
         modal: {
           ondismiss: () => {
+            isSubmittingRef.current = false;
             setIsProcessing(false);
             showToast("Payment cancelled. You can try again.", "info");
           }
@@ -633,6 +719,7 @@ export default function CheckoutPage() {
 
       rzp.on("payment.failed", (response) => {
         console.error("[RAZORPAY] Payment failed:", response.error);
+        isSubmittingRef.current = false;
         setIsProcessing(false);
         setPaymentError(response.error?.description || "Payment failed. Please try again.");
         setPaymentResult("failure");
@@ -642,6 +729,7 @@ export default function CheckoutPage() {
       rzp.open();
     } catch (err) {
       console.error("[PAYMENT] Gateway error:", err);
+      isSubmittingRef.current = false;
       setIsProcessing(false);
       setPaymentError(err.message || "Payment initiation failed. Please try again.");
       showToast(err.message || "Payment failed to initiate", "error");
@@ -649,8 +737,14 @@ export default function CheckoutPage() {
   };
 
   // ─── Main submit handler ──────────────────────────────────────────────────
-  const handleFinalSubmit = (e) => {
-    e.preventDefault();
+  const handleFinalSubmit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+
+    // Prevent concurrent rapid double-clicks (synchronous memory lock)
+    if (isSubmittingRef.current || isProcessing) {
+      console.warn("[CHECKOUT] Prevented double-click payment submission.");
+      return;
+    }
 
     if (cart.length === 0) {
       showToast("Your cart is empty. Add products to proceed.", "error");
@@ -658,10 +752,15 @@ export default function CheckoutPage() {
     }
 
     if (!validateStep1()) { setCurrentStep(1); return; }
-    if (!validateStep2()) { setCurrentStep(2); return; }
+    const isStep2Valid = await validateStep2();
+    if (!isStep2Valid) { setCurrentStep(2); return; }
 
+    isSubmittingRef.current = true;
+    setIsProcessing(true);
+    setPaymentError("");
     handleRazorpayPayment();
   };
+
 
   const resetFailureState = () => {
     setPaymentResult(null);
@@ -726,7 +825,7 @@ export default function CheckoutPage() {
                   <p>{createdOrder.shippingAddress.street}</p>
                   <p>{createdOrder.shippingAddress.city}, {createdOrder.shippingAddress.state} - {createdOrder.shippingAddress.zip}</p>
                   <p className="text-[#3674B5] font-bold mt-2">
-                    Method: {createdOrder.deliveryPref === "express" ? "Express Priority (1-2 Days)" : "Standard Shipping (3-5 Days)"}
+                    Method: Standard Shipping (3-5 Days)
                   </p>
                 </div>
               </div>
@@ -1165,6 +1264,29 @@ export default function CheckoutPage() {
                       </form>
                     )}
 
+                    {/* Serviceability Live Status Banner */}
+                    {shippingPinStatus && shippingPinStatus.checked && !isAddingNewAddress && (
+                      <div className="animate-fade-in-up">
+                        {shippingPinStatus.isServiceable ? (
+                          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex items-center gap-2.5 text-xs text-emerald-800 font-bold">
+                            <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs shrink-0">✓</span>
+                            <span>Delivery Available on Pincode {shippingPinStatus.pin}</span>
+                          </div>
+                        ) : (
+
+                          <div className="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 text-left space-y-1">
+                            <div className="flex items-center gap-2 text-rose-800 font-black text-xs">
+                              <span className="text-base">🚫</span>
+                              <span>Delivery Unavailable for Pincode {shippingPinStatus.pin}</span>
+                            </div>
+                            <p className="text-[11px] font-semibold text-rose-700 leading-relaxed">
+                              This delivery address is outside our current logistics network. We cannot complete shipment to this location. Please choose a different address or add an address with a serviceable pincode to continue.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Step Navigation Actions */}
                     <div className="flex flex-col-reverse xs:flex-row items-stretch xs:items-center justify-between gap-3 pt-3 border-t border-[#1E293B]/5">
                       <button
@@ -1175,18 +1297,30 @@ export default function CheckoutPage() {
                         <ArrowLeft className="w-3.5 h-3.5" />
                         <span>Back to Contact</span>
                       </button>
-                      <button
-                        type="button"
-                        onClick={handleContinueToPayment}
-                        className="w-full xs:w-auto px-4 sm:px-6 py-3 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm whitespace-nowrap"
-                      >
-                        <span>Continue to Payment</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
+                      
+                      {shippingPinStatus && shippingPinStatus.checked && !shippingPinStatus.isServiceable && !isAddingNewAddress ? (
+                        <button
+                          type="button"
+                          disabled
+                          className="w-full xs:w-auto px-4 sm:px-6 py-3 rounded-xl bg-rose-100 border border-rose-300 text-rose-600 text-xs font-extrabold uppercase tracking-wider cursor-not-allowed flex items-center justify-center gap-1.5 shadow-2xs whitespace-nowrap opacity-80"
+                        >
+                          <span>Pincode Not Serviceable</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleContinueToPayment}
+                          className="w-full xs:w-auto px-4 sm:px-6 py-3 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm whitespace-nowrap cursor-pointer"
+                        >
+                          <span>Continue to Payment</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ) : null}
               </div>
+
 
 
 
@@ -1436,10 +1570,6 @@ export default function CheckoutPage() {
                     </span>
                   </div>
 
-                  <div className="flex justify-between items-center">
-                    <span>Estimated Tax (18% GST)</span>
-                    <span className="font-bold text-[#1E293B]">₹{taxAmount.toLocaleString()}</span>
-                  </div>
 
                   <div className="border-t border-[#1E293B]/5 pt-4 flex justify-between items-center text-sm font-bold text-[#1E293B]">
                     <span>Final Amount</span>

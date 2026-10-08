@@ -37,8 +37,8 @@ const OrderSchema = new mongoose.Schema(
     customerPhone: { type: String, default: "" },
     paymentMethod: { type: String, default: "CARD" },
     // Razorpay real payment tracking fields
-    razorpayOrderId: { type: String, default: null },
-    razorpayPaymentId: { type: String, default: null },
+    razorpayOrderId: { type: String, default: null, sparse: true, index: true },
+    razorpayPaymentId: { type: String, default: null, sparse: true, index: true },
     paymentStatus: {
       type: String,
       default: "pending",
@@ -67,6 +67,10 @@ const OrderSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Database-level uniqueness constraints to prevent concurrent duplicate orders
+OrderSchema.index({ razorpayOrderId: 1 }, { unique: true, sparse: true });
+OrderSchema.index({ razorpayPaymentId: 1 }, { unique: true, sparse: true });
 
 if (mongoose.models.Order) {
   delete mongoose.models.Order;

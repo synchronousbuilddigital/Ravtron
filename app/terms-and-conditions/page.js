@@ -176,7 +176,7 @@ export default function TermsAndConditionsPage() {
 
               <div className="text-xs sm:text-sm font-medium leading-relaxed text-slate-600 space-y-3 pt-2 border-t border-slate-100">
                 <p>
-                  All prices listed on the website are in Indian Rupees (INR ₹) and include applicable GST taxes unless stated otherwise.
+                  All prices listed on the website are flat prices in Indian Rupees (INR ₹) with zero additional GST charges at checkout.
                 </p>
                 <ul className="space-y-2 text-xs">
                   <li className="flex items-start gap-2">

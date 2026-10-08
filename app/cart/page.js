@@ -22,6 +22,8 @@ import {
 import Navbar from "../../components/Navbar";
 import SearchModal from "../../components/SearchModal";
 import CartDrawer from "../../components/CartDrawer";
+import PincodeCheckerWidget from "../../components/PincodeCheckerWidget";
+import { calculateDeliveryCharge, FREE_SHIPPING_THRESHOLD } from "../../lib/shipping";
 
 export default function CartPage() {
   const router = useRouter();
@@ -41,12 +43,11 @@ export default function CartPage() {
 
   const [promoInput, setPromoInput] = useState("");
   const [isCouponDropdownOpen, setIsCouponDropdownOpen] = useState(false);
+  const [cartPinStatus, setCartPinStatus] = useState(null);
 
   const subtotal = getSubtotal();
-  const shipping = subtotal > 999 ? 0 : subtotal === 0 ? 0 : 99;
-  const taxableAmount = Math.max(0, subtotal - discount);
-  const taxAmount = Math.round(taxableAmount * 0.18); // 18% GST
-  const grandTotal = taxableAmount + shipping + taxAmount;
+  const shipping = calculateDeliveryCharge(subtotal);
+  const grandTotal = Math.max(0, subtotal - discount) + shipping;
 
   const handleApplyPromo = (e) => {
     e.preventDefault();
@@ -61,6 +62,10 @@ export default function CartPage() {
       showToast("Your cart is empty. Add products to proceed.", "error");
       return;
     }
+    if (cartPinStatus && cartPinStatus.checked && !cartPinStatus.available) {
+      showToast(`Warning: Delivery is unavailable for pincode ${cartPinStatus.pin}. Please check a serviceable location.`, "error");
+      return;
+    }
     const session = localStorage.getItem("ravtron_session");
     if (!session) {
       showToast("Please log in to proceed to checkout", "error");
@@ -69,6 +74,7 @@ export default function CartPage() {
     }
     router.push("/checkout");
   };
+
 
   return (
     <div className="min-h-screen bg-bg-brand text-text-brand antialiased selection:bg-[#3674B5] selection:text-white flex flex-col justify-between">
@@ -242,13 +248,13 @@ export default function CartPage() {
                     <Truck className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <div className="min-w-0 text-left">
-                    {subtotal >= 999 ? (
+                    {subtotal >= FREE_SHIPPING_THRESHOLD ? (
                       <p className="font-bold text-[#1E293B] text-xs leading-snug">
                         🎉 You qualify for <span className="text-[#3674B5]">FREE Standard Delivery!</span>
                       </p>
                     ) : (
                       <p className="text-xs leading-snug">
-                        Add <span className="font-bold text-[#3674B5]">₹{(999 - subtotal).toLocaleString()}</span> more to unlock <span className="font-bold text-[#1E293B]">Free Shipping</span>.
+                        Add <span className="font-bold text-[#3674B5]">₹{(FREE_SHIPPING_THRESHOLD - subtotal).toLocaleString()}</span> more to unlock <span className="font-bold text-[#1E293B]">Free Shipping</span>.
                       </p>
                     )}
                   </div>
@@ -415,12 +421,6 @@ export default function CartPage() {
                     </span>
                   </div>
 
-                  <div className="flex justify-between items-center">
-                    <span>Estimated GST Tax (18%)</span>
-                    <span className="font-bold text-[#1E293B]">
-                      ₹{taxAmount.toLocaleString()}
-                    </span>
-                  </div>
 
                   <div className="border-t border-[#1E293B]/10 pt-4 flex justify-between items-center text-base font-bold text-[#1E293B]">
                     <span>Total Amount</span>
@@ -452,6 +452,13 @@ export default function CartPage() {
                   🔒 Encrypted checkout tunnel. Taxes calculated based on destination postal state.
                 </p>
               </div>
+
+              {/* Pincode Delivery Availability Checker */}
+              <PincodeCheckerWidget 
+                className="bg-white shadow-xs border-[#1E293B]/10" 
+                onStatusChange={setCartPinStatus}
+              />
+
             </div>
           </div>
         )}

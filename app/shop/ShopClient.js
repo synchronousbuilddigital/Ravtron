@@ -8,6 +8,34 @@ import Image from "next/image";
 import Footer from "../../components/Footer";
 import SearchModal from "../../components/SearchModal";
 
+function formatCategoryTitle(text) {
+  if (!text) return "";
+  if (text.toLowerCase() === "all") return "All";
+
+  const upper = text.toUpperCase().trim();
+  if (upper === "DOCKING STATION" || upper === "DOCKING STATIONS") return "Docking Station";
+  if (upper === "HDMI CABLES") return "HDMI Cables";
+  if (upper === "VGA CABLES") return "VGA Cables";
+  if (upper === "POWER CABLES" || upper === "POWER CORDS") return "Power Cords";
+  if (upper === "CONVERTERS") return "Converters";
+  if (upper === "CABLES") return "Cables";
+  if (upper === "PATCH CORD" || upper === "PATCH CORDS") return "Patch Cords";
+  if (upper === "CAT6 CABLE" || upper === "CAT6 CABLES") return "CAT6 Cables";
+  if (upper === "TYPE C" || upper === "TYPE-C") return "Type-C";
+  if (upper === "DUAL TYPE C") return "Dual Type-C";
+
+  return text
+    .split(/[\s_]+/)
+    .map((word) => {
+      const wUpper = word.toUpperCase();
+      if (["HDMI", "VGA", "USB", "USB-C", "4K", "8K", "DP", "DVI", "LAN", "RJ45", "OTG", "CCTV", "POE", "BNC", "DC", "SSD", "CAT6"].includes(wUpper)) {
+        return wUpper;
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(" ");
+}
+
 function ShopContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -61,8 +89,6 @@ function ShopContent() {
           params.set("search", trimmedInput);
         } else {
           params.delete("search");
-          params.delete("q");
-          params.delete("tag");
         }
         const newUrl = params.toString() ? `/shop?${params.toString()}` : "/shop";
         router.replace(newUrl, { scroll: false });
@@ -186,100 +212,85 @@ function ShopContent() {
     <div className="min-h-screen bg-bg-brand text-text-brand antialiased selection:bg-[#3674B5] selection:text-white">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 md:pt-10 pb-16 md:pb-24 relative z-10 space-y-6 md:space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-8 pb-16 md:pb-24 relative z-10 space-y-4 sm:space-y-6">
         
-        {/* Top Control Bar: Category Filter Pills on Left, Search Bar on Right */}
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 md:gap-3 py-2 border-b border-[#1E293B]/10">
+        {/* Top Control & Filter Section */}
+        <div className="space-y-2.5 sm:space-y-3 pb-3 border-b border-[#1E293B]/10">
           
-          {/* LEFT SIDE: Category Filter Pills Bar */}
-          <div className="flex items-center justify-start lg:justify-between gap-1 md:gap-1.5 p-1.5 px-2 sm:px-3 bg-slate-100 border border-slate-300/80 rounded-2xl sm:rounded-full overflow-x-auto scrollbar-none scroll-smooth flex-grow min-w-0 shadow-inner">
-            {filterOptions.map((opt) => (
-              <button
-                key={opt}
-                onClick={() => handleFilterClick(opt)}
-                className={`px-3 py-1.5 sm:px-4 rounded-xl sm:rounded-full text-xs font-extrabold transition-all duration-300 hover:scale-[1.02] active:scale-97 whitespace-nowrap shrink-0 ${activeCategory === opt
-                    ? "bg-[#3674B5] text-white shadow-sm font-black"
-                    : "text-[#1E293B] hover:text-[#3674B5] hover:bg-white"
-                  }`}
-              >
-                {opt}
-              </button>
-            ))}
+          {/* CATEGORY FILTER PILLS BAR: Seamless horizontal scroll */}
+          <div className="w-full min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none scroll-smooth py-0.5 -mx-4 px-4 sm:mx-0 sm:px-0">
+              {filterOptions.map((opt) => {
+                const isActive = activeCategory.toLowerCase().trim() === opt.toLowerCase().trim();
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => handleFilterClick(opt)}
+                    className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-bold transition-all duration-200 whitespace-nowrap shrink-0 ${
+                      isActive
+                        ? "bg-[#3674B5] text-white shadow-sm font-extrabold shadow-[#3674B5]/25"
+                        : "bg-slate-100 hover:bg-slate-200/80 text-slate-700 hover:text-[#3674B5] border border-slate-200/80"
+                    }`}
+                  >
+                    {formatCategoryTitle(opt)}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* RIGHT SIDE: Search Input Box Pill */}
-          <div className="relative w-full lg:w-64 xl:w-72 shrink-0">
-            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-              <svg className="w-4 h-4 text-[#1E293B]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </span>
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-full pl-10 pr-9 py-2 md:py-2.5 text-xs font-bold text-[#1E293B] placeholder-[#1E293B]/60 outline-none focus:border-[#3674B5] focus:ring-2 focus:ring-[#3674B5]/20 shadow-xs transition-all"
-            />
-            {searchInput && (
+          {/* SUB-CATEGORIES FILTER PILLS BAR (when available) */}
+          {availableSubcategories.length > 0 && (
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none scroll-smooth py-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+              <div className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-[#3674B5]/10 text-[#3674B5] text-[10px] font-black uppercase tracking-wider shrink-0">
+                <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                <span>Sub</span>
+              </div>
               <button
-                type="button"
-                onClick={handleClearSearch}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-black text-[#1E293B]/60 hover:text-[#1E293B]"
-                title="Clear Search"
+                onClick={() => handleSubcategoryFilterClick("All")}
+                className={`px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
+                  activeSubcategory === "All"
+                    ? "bg-[#3674B5] text-white shadow-2xs font-extrabold"
+                    : "bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/90 shadow-2xs"
+                }`}
               >
-                ✕
+                All
               </button>
-            )}
-          </div>
+              {availableSubcategories.map((sub) => {
+                const isSubActive = activeSubcategory.toLowerCase() === sub.toLowerCase();
+                return (
+                  <button
+                    key={sub}
+                    onClick={() => handleSubcategoryFilterClick(sub)}
+                    className={`px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
+                      isSubActive
+                        ? "bg-[#3674B5] text-white shadow-2xs font-extrabold"
+                        : "bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/90 shadow-2xs"
+                    }`}
+                  >
+                    {formatCategoryTitle(sub)}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
         </div>
 
-        {/* SUB-CATEGORIES FILTER PILLS BAR */}
-        {availableSubcategories.length > 0 && (
-          <div className="flex items-center justify-start gap-1.5 p-1.5 sm:p-2 px-2 sm:px-3 bg-blue-50/60 border border-[#3674B5]/20 rounded-2xl overflow-x-auto scrollbar-none scroll-smooth shadow-2xs w-full min-w-0">
-            <span className="text-[9px] sm:text-[10px] font-black text-[#3674B5] uppercase tracking-wider pl-1 pr-0.5 shrink-0">
-              <span className="hidden sm:inline">Subcategories:</span>
-              <span className="sm:hidden">Sub:</span>
-            </span>
-            <button
-              onClick={() => handleSubcategoryFilterClick("All")}
-              className={`px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-extrabold uppercase transition-all whitespace-nowrap shrink-0 ${
-                activeSubcategory === "All"
-                  ? "bg-[#3674B5] text-white shadow-2xs font-black"
-                  : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
-              }`}
-            >
-              All {activeCategory !== "All" ? activeCategory : ""}
-            </button>
-            {availableSubcategories.map((sub) => (
-              <button
-                key={sub}
-                onClick={() => handleSubcategoryFilterClick(sub)}
-                className={`px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-extrabold uppercase transition-all whitespace-nowrap shrink-0 ${
-                  activeSubcategory.toLowerCase() === sub.toLowerCase()
-                    ? "bg-[#3674B5] text-white shadow-2xs font-black"
-                    : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
-                }`}
-              >
-                {sub}
-              </button>
-            ))}
-          </div>
-        )}
-
         {/* Active Subcategory / Search Filter Indicator Banner */}
         {(activeSearchTerm || (activeSubcategory && activeSubcategory !== "All")) && (
-          <div className="flex items-center justify-between bg-[#3674B5]/8 border border-[#3674B5]/20 rounded-2xl px-5 py-3 text-xs font-bold text-[#1E293B] max-w-xl mx-auto shadow-2xs">
-            <span>
-              Showing results for <span className="text-[#3674B5] font-extrabold">&ldquo;{activeSubcategory !== "All" ? activeSubcategory : activeSearchTerm}&rdquo;</span>
-              {activeCategory !== "All" && <span> in <span className="text-[#1E293B] font-extrabold">{activeCategory}</span></span>}
+          <div className="flex items-center justify-between gap-2 bg-[#3674B5]/8 border border-[#3674B5]/20 rounded-xl sm:rounded-2xl px-3.5 sm:px-5 py-2 sm:py-3 text-xs font-bold text-[#1E293B] max-w-xl mx-auto shadow-2xs">
+            <span className="truncate">
+              Showing results for <span className="text-[#3674B5] font-extrabold">&ldquo;{activeSubcategory !== "All" ? formatCategoryTitle(activeSubcategory) : activeSearchTerm}&rdquo;</span>
+              {activeCategory !== "All" && <span> in <span className="text-[#1E293B] font-extrabold">{formatCategoryTitle(activeCategory)}</span></span>}
             </span>
             <button
               onClick={handleClearSearch}
-              className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider hover:underline bg-white px-2.5 py-1 rounded-lg border border-[#3674B5]/20 shadow-2xs transition-all hover:scale-105"
+              className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider hover:underline bg-white px-2.5 py-1 rounded-lg border border-[#3674B5]/20 shadow-2xs transition-all hover:scale-105 shrink-0"
             >
-              Clear Filter ✕
+              Clear ✕
             </button>
           </div>
         )}

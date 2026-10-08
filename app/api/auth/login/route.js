@@ -9,7 +9,7 @@ import { setSessionCookie, getSessionCookieOptions } from "@/lib/auth";
 export async function POST(request) {
   try {
     const clientIp = getClientIp(request);
-    const rateCheck = rateLimit(`login_${clientIp}`, 5, 60 * 1000);
+    const rateCheck = await rateLimit(`login_${clientIp}`, 5, 60 * 1000);
     if (!rateCheck.success) {
       logSecurityEvent("LOGIN_RATE_LIMIT_EXCEEDED", { ip: clientIp });
       return NextResponse.json(
@@ -58,10 +58,23 @@ export async function POST(request) {
     const isAdminLogin = inputEmail === adminEnvEmail || (existingUser && existingUser.role === "Administrator");
 
     if (isAdminLogin) {
-      // Validate Admin Password strictly against env configuration or bcrypt hash if stored
-      let isValidAdminPass = password === adminEnvPassword;
-      if (!isValidAdminPass && existingUser && existingUser.password) {
+      // Validate Admin Password securely using bcrypt.compare()
+      let isValidAdminPass = false;
+
+      // 1. Primary check: Verify password against bcrypt hash in database
+      if (existingUser && existingUser.password) {
         isValidAdminPass = await comparePassword(password, existingUser.password);
+      }
+
+      // 2. Initial provisioning / env check: Compare using bcrypt.compare()
+      if (!isValidAdminPass && inputEmail === adminEnvEmail) {
+        if (adminEnvPassword.startsWith("$2a$") || adminEnvPassword.startsWith("$2b$") || adminEnvPassword.startsWith("$2y$")) {
+          isValidAdminPass = await comparePassword(password, adminEnvPassword);
+        } else {
+          // If env password is provided as plain text seed, hash and compare via bcrypt
+          const envPassHash = await hashPassword(adminEnvPassword);
+          isValidAdminPass = await comparePassword(password, envPassHash);
+        }
       }
 
       if (!isValidAdminPass) {
@@ -71,10 +84,10 @@ export async function POST(request) {
 
       let adminUser = existingUser;
 
-      // Auto-provision configured environment admin if missing in database
+      // Auto-provision configured environment admin with bcrypt hash if missing in database
       if (!adminUser && inputEmail === adminEnvEmail) {
         try {
-          const hashedPassword = await hashPassword(adminEnvPassword);
+          const hashedPassword = await hashPassword(password);
           adminUser = await User.create({
             name: adminEnvName,
             email: adminEnvEmail,
@@ -85,6 +98,14 @@ export async function POST(request) {
           });
         } catch (e) {
           console.warn("Failed to persist admin to MongoDB during login:", e.message);
+        }
+      } else if (adminUser && !adminUser.password) {
+        // Upgrade legacy admin user to have bcrypt hash stored
+        try {
+          const hashedPassword = await hashPassword(password);
+          await User.updateOne({ _id: adminUser._id }, { password: hashedPassword });
+        } catch (e) {
+          console.warn("Failed to upgrade admin password hash:", e.message);
         }
       }
 

@@ -1,4 +1,23 @@
 import { NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
+
+let cachedPincodes = null;
+
+function getPincodesMap() {
+  if (cachedPincodes) return cachedPincodes;
+  try {
+    const filePath = path.join(process.cwd(), "public", "pincodes.json");
+    if (fs.existsSync(filePath)) {
+      const raw = fs.readFileSync(filePath, "utf8");
+      cachedPincodes = JSON.parse(raw);
+      return cachedPincodes;
+    }
+  } catch (err) {
+    console.error("[PINCODE_CACHE_ERROR]", err);
+  }
+  return null;
+}
 
 export async function GET(request, { params }) {
   try {
@@ -13,45 +32,31 @@ export async function GET(request, { params }) {
       );
     }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const localMap = getPincodesMap();
+    const localEntry = localMap && localMap[cleanPin] && localMap[cleanPin].length > 0 ? localMap[cleanPin][0] : null;
 
-    const res = await fetch(`https://api.postalpincode.in/pincode/${cleanPin}`, {
-      signal: controller.signal,
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-        "Accept": "application/json"
-      },
-      next: { revalidate: 86400 } // Cache pincode lookups for 24h
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: "Failed to fetch pincode details", success: false },
-        { status: 502 }
-      );
-    }
-
-    const data = await res.json();
-
-    if (Array.isArray(data) && data[0]?.Status === "Success" && data[0]?.PostOffice?.length > 0) {
-      const po = data[0].PostOffice[0];
-      const city = po.District || po.Division || po.Block || "";
-      const state = po.State || "";
+    if (localEntry) {
       return NextResponse.json({
         success: true,
-        city,
-        state,
-        postOffice: po.Name || ""
+        isServiceable: true,
+        center: localEntry.center,
+        state: localEntry.state,
+        city: localEntry.center,
+        areas: localEntry.areas || [],
+        postOffice: (localEntry.areas && localEntry.areas[0]) || localEntry.center
       });
     }
 
-    return NextResponse.json(
-      { error: "No location details found for this PIN code.", success: false },
-      { status: 404 }
-    );
+    // Pincode not found in local serviceable delivery network
+    return NextResponse.json({
+      success: true,
+      isServiceable: false,
+      error: "Pincode is not in our serviceable delivery network.",
+      city: "",
+      state: "",
+      center: "",
+      areas: []
+    });
   } catch (err) {
     console.error("[PINCODE_API_ERROR]", err);
     return NextResponse.json(
@@ -60,3 +65,4 @@ export async function GET(request, { params }) {
     );
   }
 }
+

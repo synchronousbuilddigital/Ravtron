@@ -1,17 +1,29 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
+import Razorpay from "razorpay";
 import dbConnect from "@/lib/dbConnect";
 import Order from "@/models/Order";
 import Product from "@/models/Product";
 import Coupon from "@/models/Coupon";
 import { getSession } from "@/lib/auth";
-import { calculateVerifiedCouponDiscount } from "@/lib/couponSecurity";
+import { calculateVerifiedCouponDiscount, redeemCouponAtomically, releaseCouponRedemption } from "@/lib/couponSecurity";
 import { clearOrdersCache } from "@/lib/cache";
 import { sendOrderConfirmationEmail, sendNewOrderAdminAlert } from "@/lib/email";
 import { verifyCsrfOrigin } from "@/lib/csrf";
+import { calculateDeliveryCharge } from "@/lib/shipping";
+import { rateLimit, getClientIp } from "@/lib/rateLimit";
 
 export async function POST(request) {
   try {
+    const clientIp = getClientIp(request);
+    const rateCheck = await rateLimit(`pay_verify_${clientIp}`, 10, 60 * 1000);
+    if (!rateCheck.success) {
+      return NextResponse.json(
+        { error: "Too many payment verification requests. Please wait 1 minute before trying again." },
+        { status: 429, headers: { "Retry-After": "60" } }
+      );
+    }
+
     const csrf = verifyCsrfOrigin(request);
     if (!csrf.ok) return csrf.response;
 
@@ -61,7 +73,11 @@ export async function POST(request) {
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 
-    if (generatedSignature !== razorpay_signature) {
+    const genBuf = Buffer.from(generatedSignature, "utf8");
+    const recBuf = Buffer.from(razorpay_signature, "utf8");
+    const isSignatureValid = genBuf.length === recBuf.length && crypto.timingSafeEqual(genBuf, recBuf);
+
+    if (!isSignatureValid) {
       console.error("[RAZORPAY] Signature mismatch — possible tampered request");
       return NextResponse.json(
         { error: "Payment verification failed: Invalid signature" },
@@ -80,9 +96,9 @@ export async function POST(request) {
     const validatedItems = [];
 
     for (const item of orderData.items) {
-      if (!item.productId) {
+      if (!item || !item.productId) {
         return NextResponse.json(
-          { error: `Missing productId for item: ${item.name}` },
+          { error: `Missing productId for item: ${item?.name || "unknown"}` },
           { status: 400 }
         );
       }
@@ -96,15 +112,18 @@ export async function POST(request) {
       }
 
       // Determine correct price (respects size pricing)
-      let price = product.price;
-      if (item.selectedSize) {
-        const sizePriceObj = product.sizePrices?.find(
+      let price = Number(product.price) || 0;
+      if (item.selectedSize && Array.isArray(product.sizePrices)) {
+        const sizePriceObj = product.sizePrices.find(
           (sp) => sp.size === item.selectedSize
         );
-        if (sizePriceObj) price = sizePriceObj.price;
+        if (sizePriceObj && Number(sizePriceObj.price) > 0) {
+          price = Number(sizePriceObj.price);
+        }
       }
 
-      const qty = Number(item.qty || item.quantity || 1);
+      const rawQty = Number(item.qty || item.quantity || 1);
+      const qty = (!Number.isFinite(rawQty) || rawQty < 1) ? 1 : Math.min(100, Math.floor(rawQty));
 
       // Stock validation
       if (typeof product.stock === "number" && product.stock < qty) {
@@ -124,7 +143,7 @@ export async function POST(request) {
       validatedItems.push({
         productId: item.productId,
         selectedSize: item.selectedSize || null,
-        name: item.name,
+        name: product.name || item.name,
         image: product.image || item.image,
         price,
         qty,
@@ -140,12 +159,40 @@ export async function POST(request) {
     });
     orderData.coupon = couponCode;
 
-    // Recalculate server-side total
-    const deliveryCharge =
-      orderData.deliveryPref === "express" ? 199 : subtotal > 999 ? 0 : 99;
-    const taxableAmount = Math.max(0, subtotal - verifiedSavings);
-    const taxAmount = Math.round(taxableAmount * 0.18);
-    const verifiedTotal = taxableAmount + deliveryCharge + taxAmount;
+    // Recalculate server-side total securely (no GST, pure price + delivery):
+    // Delivery policy: ₹99 on orders under ₹300; ₹0 (FREE) on ₹300 and above.
+    const deliveryCharge = calculateDeliveryCharge(subtotal);
+    const discountedSubtotal = Math.max(0, subtotal - verifiedSavings);
+    const verifiedTotal = discountedSubtotal + deliveryCharge;
+
+    // ── 4b. SECURITY: Verify Razorpay order amount matches server-verified total ───
+    // Prevents amount-swapping or underpayment attacks
+    const razorpayKeyId = (process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "").trim();
+    const razorpayKeySecret = (process.env.RAZORPAY_KEY_SECRET || "").trim();
+    if (
+      razorpayKeyId &&
+      razorpayKeySecret &&
+      (razorpayKeyId.startsWith("rzp_test_") || razorpayKeyId.startsWith("rzp_live_"))
+    ) {
+      try {
+        const razorpay = new Razorpay({ key_id: razorpayKeyId, key_secret: razorpayKeySecret });
+        const rzpOrder = await razorpay.orders.fetch(razorpay_order_id);
+        const expectedPaise = Math.round(verifiedTotal * 100);
+        if (rzpOrder && rzpOrder.amount !== expectedPaise) {
+          console.error(`[SECURITY] Paid amount mismatch: expected ${expectedPaise} paise, got ${rzpOrder.amount} paise`);
+          return NextResponse.json(
+            { error: "Payment verification failed: Paid amount does not match verified order total." },
+            { status: 400 }
+          );
+        }
+      } catch (rzpErr) {
+        console.error("[RAZORPAY] Order fetch error during verification:", rzpErr.message);
+        return NextResponse.json(
+          { error: "Payment verification failed: Could not verify Razorpay order details." },
+          { status: 400 }
+        );
+      }
+    }
 
     // ── 5. SECURITY: Replay attack prevention ────────────────────────────────
     // Prevents attacker from calling /verify multiple times with the same
@@ -159,10 +206,11 @@ export async function POST(request) {
       );
     }
 
-    // ── 6. Generate a collision-resistant Order ID ────────────────────────────
-    // SECURITY FIX: Math.random() only has 90,000 possibilities — UUID has 2^122.
-    // Format: RVT-<8 hex chars>-IN  e.g. RVT-A3F2C1D9-IN
-    const orderId = "RVT-" + crypto.randomUUID().split("-")[0].toUpperCase() + "-IN";
+    // ── 6. Generate a collision-proof timestamp + cryptographic UUID Order ID ──
+    // Format: RVT-<TIMESTAMP_BASE36>-<RANDOM_HEX>-IN  e.g. RVT-M9K3B1-A3F2C1D9-IN
+    const timestampPart = Date.now().toString(36).toUpperCase();
+    const randomHexPart = crypto.randomUUID().split("-")[0].toUpperCase();
+    const orderId = `RVT-${timestampPart}-${randomHexPart}-IN`;
 
     const newOrder = {
       id: orderId,
@@ -207,7 +255,39 @@ export async function POST(request) {
       return NextResponse.json({ error: "Duplicate order ID" }, { status: 400 });
     }
 
-    const savedOrder = await Order.create(newOrder);
+    // ── 5b. SECURITY: Atomically Lock & Redeem Coupon (Race-Condition Free) ─
+    let couponClaimed = false;
+    if (newOrder.coupon && sessionEmail && Number(newOrder.savings) > 0) {
+      const claimResult = await redeemCouponAtomically({
+        couponCode: newOrder.coupon,
+        customerEmail: sessionEmail,
+        orderId: orderId,
+      });
+
+      if (!claimResult.success) {
+        console.error(`[SECURITY] Coupon double-use race prevented: ${sessionEmail} on coupon ${newOrder.coupon}`);
+        return NextResponse.json(
+          { error: "This coupon has already been redeemed by your account or reached its limit." },
+          { status: 400 }
+        );
+      }
+      couponClaimed = true;
+    }
+
+    let savedOrder;
+    try {
+      savedOrder = await Order.create(newOrder);
+    } catch (orderCreateErr) {
+      // Rollback atomic coupon reservation if order persistence fails
+      if (couponClaimed) {
+        await releaseCouponRedemption({
+          couponCode: newOrder.coupon,
+          customerEmail: sessionEmail,
+          orderId: orderId,
+        });
+      }
+      throw orderCreateErr;
+    }
 
     // ── 6. Deduct stock ──────────────────────────────────────────────────────
     for (const item of validatedItems) {

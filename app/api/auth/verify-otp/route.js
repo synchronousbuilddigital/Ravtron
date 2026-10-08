@@ -10,7 +10,7 @@ import { setSessionCookie, getSessionCookieOptions } from "@/lib/auth";
 export async function POST(request) {
   try {
     const clientIp = getClientIp(request);
-    const rateCheck = rateLimit(`verify_otp_${clientIp}`, 5, 60 * 1000);
+    const rateCheck = await rateLimit(`verify_otp_${clientIp}`, 5, 60 * 1000);
     if (!rateCheck.success) {
       return NextResponse.json(
         { error: "Too many verification attempts. Please wait 1 minute." },

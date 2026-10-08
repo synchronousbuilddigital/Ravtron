@@ -80,6 +80,20 @@ export async function POST(request, { params }) {
     await order.save();
     clearOrdersCache();
 
+    // Release coupon redemption if applied
+    if (order.coupon && order.customerEmail) {
+      try {
+        const { releaseCouponRedemption } = await import("@/lib/couponSecurity");
+        await releaseCouponRedemption({
+          couponCode: order.coupon,
+          customerEmail: order.customerEmail,
+          orderId: order.id,
+        });
+      } catch (couponReleaseErr) {
+        console.warn("[COUPON] Failed to release coupon upon cancellation:", couponReleaseErr.message);
+      }
+    }
+
     return NextResponse.json(order);
   } catch (error) {
     console.error("POST /api/orders/[id]/cancel error:", error);

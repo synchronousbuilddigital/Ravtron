@@ -7,7 +7,7 @@ export async function POST(request) {
   try {
     // SEC-017 Layer 1: IP-based rate limit — 5 submissions per minute per IP
     const clientIp = getClientIp(request);
-    const ipCheck = rateLimit(`support_ip_${clientIp}`, 5, 60 * 1000);
+    const ipCheck = await rateLimit(`support_ip_${clientIp}`, 5, 60 * 1000);
     if (!ipCheck.success) {
       return NextResponse.json(
         { error: "Too many requests. Please wait a moment before submitting again." },
@@ -31,7 +31,7 @@ export async function POST(request) {
 
     // SEC-017 Layer 3: Per-email rate limit — max 3 tickets per 10 minutes per sender
     const cleanEmail = sanitizeEmail(email);
-    const emailCheck = rateLimit(`support_email_${cleanEmail}`, 3, 10 * 60 * 1000);
+    const emailCheck = await rateLimit(`support_email_${cleanEmail}`, 3, 10 * 60 * 1000);
     if (!emailCheck.success) {
       return NextResponse.json(
         { error: "You have submitted too many support tickets recently. Please wait 10 minutes before trying again." },

@@ -95,8 +95,8 @@ export default function ShippingPolicyPage() {
             <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#3674B5] flex items-center justify-center">
               <Truck className="w-5 h-5" />
             </div>
-            <h3 className="font-extrabold text-slate-900 text-sm">Free Delivery Above ₹999</h3>
-            <p className="text-xs text-slate-500 font-medium">Complimentary shipping on orders above ₹999. Nominal flat fee of ₹49 for orders below ₹999.</p>
+            <h3 className="font-extrabold text-slate-900 text-sm">Free Delivery Above ₹300</h3>
+            <p className="text-xs text-slate-500 font-medium">Complimentary shipping on orders ₹300 and above. Delivery fee of ₹99 for orders under ₹300.</p>
           </div>
 
           <div className="bg-white border border-slate-200/80 rounded-2xl p-5 space-y-2 shadow-2xs">
@@ -214,11 +214,11 @@ export default function ShippingPolicyPage() {
             </h3>
             <div className="text-xs sm:text-sm font-medium text-slate-600 leading-relaxed space-y-2">
               <p>
-                We offer free standard shipping on all cart totals amounting to <strong>₹999 or more</strong>. For cart values below ₹999, a nominal shipping charge of ₹49 is added at checkout.
+                We offer free standard shipping on all cart totals amounting to <strong>₹300 or more</strong>. For cart values under ₹300, a delivery charge of ₹99 is added at checkout.
               </p>
               <div className="p-3 bg-[#F8F9FA] rounded-xl border border-slate-200/60 text-xs font-semibold text-slate-700">
-                • Free Shipping: Orders ₹999+ (Zero delivery fee)<br />
-                • Standard Shipping: Orders under ₹999 (Flat ₹49 fee)
+                • Free Shipping: Orders ₹300+ (Zero delivery fee)<br />
+                • Standard Shipping: Orders under ₹300 (Flat ₹99 fee)
               </div>
             </div>
           </div>

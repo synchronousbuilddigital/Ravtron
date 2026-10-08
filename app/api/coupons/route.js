@@ -81,7 +81,11 @@ export async function GET(request) {
 
       coupons = coupons.filter((c) => {
         const isOneTime = c.oneTimePerUser !== false; // Default true
-        if (isOneTime && usedCodes.has(c.code.toUpperCase())) {
+        if (!isOneTime) return true;
+        const normalizedEmail = userEmail.trim().toLowerCase();
+        const inUsedBy = Array.isArray(c.usedBy) && c.usedBy.some((u) => (u.email || "").toLowerCase() === normalizedEmail);
+        const inOrders = usedCodes.has(c.code.toUpperCase());
+        if (inUsedBy || inOrders) {
           return false; // HIDE coupon from this user because they already used it!
         }
         return true;
