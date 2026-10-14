@@ -1,3 +1,4 @@
+import { GoogleTagManager } from "@next/third-parties/google";
 import "./globals.css";
 import { CartProvider } from "./context/CartContext";
 import PWARegister from "../components/PWARegister";
@@ -36,6 +37,8 @@ export const viewport = {
 };
 
 export default function RootLayout({ children }) {
+  const gtmId = process.env.NEXT_PUBLIC_GTM_ID || "GTM-PR2PW522";
+
   return (
     <html 
       lang="en" 
@@ -43,6 +46,7 @@ export default function RootLayout({ children }) {
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
+      <GoogleTagManager gtmId={gtmId} />
       <body>
         <CartProvider>
           <OrganizationJsonLd />

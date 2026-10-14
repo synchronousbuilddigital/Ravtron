@@ -10,6 +10,7 @@
     "audit": "npm audit"
   },
   "dependencies": {
+    "@next/third-parties": "^16.4.0",
     "@react-oauth/google": "^0.13.5",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.10.0",
