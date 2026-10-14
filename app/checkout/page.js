@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
 import { useCart } from "../context/CartContext";
+import { trackEvent } from "../../lib/gtm";
 import {
   CreditCard,
   ShieldCheck,
@@ -39,6 +40,28 @@ export default function CheckoutPage() {
   const { cart, coupon, discount, applyCouponCode, removeCoupon, getSubtotal, clearCart, showToast, coupons } = useCart();
   const [checkoutPromoInput, setCheckoutPromoInput] = useState("");
   const [isCouponDropdownOpen, setIsCouponDropdownOpen] = useState(false);
+
+  // E-commerce: Track begin_checkout when checkout loads with items
+  const hasTrackedBeginCheckout = useRef(false);
+  useEffect(() => {
+    if (!hasTrackedBeginCheckout.current && cart && cart.length > 0) {
+      hasTrackedBeginCheckout.current = true;
+      trackEvent("begin_checkout", {
+        ecommerce: {
+          currency: "INR",
+          value: Math.max(0, (getSubtotal ? getSubtotal() : 0) - (discount || 0)),
+          items: cart.map((item) => ({
+            item_id: String(item.id || item._id || ""),
+            item_name: item.name || "",
+            price: Number(item.price || 0),
+            quantity: item.quantity || 1,
+            item_category: item.category || "",
+            item_variant: item.selectedSize || item.selectedChannel || "",
+          })),
+        },
+      });
+    }
+  }, [cart, discount]);
 
   // Steps control
   const [currentStep, setCurrentStep] = useState(1); // Step 1: Contact, Step 2: Shipping, Step 3: Payment
@@ -691,6 +714,26 @@ export default function CheckoutPage() {
             localStorage.setItem(storageKey, JSON.stringify(savedAddresses));
             setCreatedOrder(verifyData.order);
             setPaymentResult("success");
+
+            // Google Tag Manager / GA4: Track purchase event
+            trackEvent("purchase", {
+              ecommerce: {
+                transaction_id: String(verifyData.order?.orderId || rpOrderId || Date.now()),
+                value: Number(verifyData.order?.totalAmount || verifyData.order?.finalAmount || 0),
+                currency: "INR",
+                tax: Number(verifyData.order?.tax || 0),
+                shipping: Number(verifyData.order?.deliveryCharge || 0),
+                coupon: coupon || "",
+                items: cart.map((item) => ({
+                  item_id: String(item.id || item._id || item.productId || ""),
+                  item_name: item.name || "",
+                  price: Number(item.price || 0),
+                  quantity: item.quantity || 1,
+                  item_variant: item.selectedSize || item.selectedChannel || "",
+                })),
+              },
+            });
+
             clearCart();
             idempotencyKeyRef.current = null;
             showToast("Payment Successful! Order Confirmed.", "success");

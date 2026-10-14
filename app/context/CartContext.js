@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { products as fallbackProducts, categories as fallbackCategories } from "../data/products";
+import { trackEvent } from "../../lib/gtm";
 
 const CartContext = createContext(null);
 
@@ -387,6 +388,22 @@ export function CartProvider({ children }) {
 
       if (existing) {
         showToast(`Added ${quantityToAdd}x ${product.name}${variantTag ? ` (${variantTag})` : ""} to cart`);
+        trackEvent("add_to_cart", {
+          ecommerce: {
+            currency: "INR",
+            value: Number(product.price || 0) * quantityToAdd,
+            items: [
+              {
+                item_id: String(product.id || product._id || ""),
+                item_name: product.name || "",
+                price: Number(product.price || 0),
+                item_category: product.category || "",
+                item_variant: variantTag || "",
+                quantity: quantityToAdd,
+              },
+            ],
+          },
+        });
         return prevCart.map((item) =>
           item.id === product.id &&
           item.selectedSize === product.selectedSize &&
@@ -397,6 +414,22 @@ export function CartProvider({ children }) {
         );
       }
       showToast(`Added ${quantityToAdd}x ${product.name}${variantTag ? ` (${variantTag})` : ""} to cart`);
+      trackEvent("add_to_cart", {
+        ecommerce: {
+          currency: "INR",
+          value: Number(product.price || 0) * quantityToAdd,
+          items: [
+            {
+              item_id: String(product.id || product._id || ""),
+              item_name: product.name || "",
+              price: Number(product.price || 0),
+              item_category: product.category || "",
+              item_variant: variantTag || "",
+              quantity: quantityToAdd,
+            },
+          ],
+        },
+      });
       return [...prevCart, { ...product, quantity: quantityToAdd, stock: availableStock }];
     });
   };
@@ -419,6 +452,22 @@ export function CartProvider({ children }) {
       if (itemToRemove) {
         const variantTag = itemToRemove.selectedSize || itemToRemove.selectedPrivacySize || itemToRemove.selectedChannel;
         showToast(`Removed ${itemToRemove.name}${variantTag ? ` (${variantTag})` : ""} from cart`, "info");
+        trackEvent("remove_from_cart", {
+          ecommerce: {
+            currency: "INR",
+            value: Number(itemToRemove.price || 0) * (itemToRemove.quantity || 1),
+            items: [
+              {
+                item_id: String(itemToRemove.id || itemToRemove._id || ""),
+                item_name: itemToRemove.name || "",
+                price: Number(itemToRemove.price || 0),
+                item_category: itemToRemove.category || "",
+                item_variant: variantTag || "",
+                quantity: itemToRemove.quantity || 1,
+              },
+            ],
+          },
+        });
       }
 
       return prevCart.filter((i) => {
