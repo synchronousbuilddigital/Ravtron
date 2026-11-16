@@ -4,8 +4,10 @@ import React, { useState, useEffect } from "react";
 import { Plug, Monitor, Globe } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useCart } from "../app/context/CartContext";
 
 export default function Hero() {
+  const { products: activeProducts } = useCart();
   const [animationState, setAnimationState] = useState("retracted");
   const [disconnectedIndex, setDisconnectedIndex] = useState(0);
   const [connectedIndex, setConnectedIndex] = useState(0);
@@ -68,14 +70,10 @@ export default function Hero() {
   useEffect(() => {
     async function loadHeroSlides() {
       try {
-        const [resHero, resProducts] = await Promise.all([
-          fetch("/api/hero"),
-          fetch("/api/products")
-        ]);
+        const resHero = await fetch("/api/hero");
 
-        if (resHero.ok && resProducts.ok) {
+        if (resHero.ok) {
           const heroData = await resHero.json();
-          const activeProducts = await resProducts.json();
           const activeProductIds = new Set(activeProducts.map((p) => p.id));
 
           // Merge custom database slides with default slides
@@ -176,7 +174,7 @@ export default function Hero() {
       active = false;
       if (timerId) clearTimeout(timerId);
     };
-  }, []);
+  }, [activeProducts]);
 
   return (
     <section

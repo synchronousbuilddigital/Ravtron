@@ -254,3 +254,9 @@ a.button {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/* Defer layout and paint for distant homepage sections. */
+main > section:nth-of-type(n + 4) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 720px;
+}

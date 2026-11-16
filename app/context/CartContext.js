@@ -25,10 +25,10 @@ export function CartProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
   // Global cache states for products, categories, and coupons to optimize page load speeds
-  const [products, setProducts] = useState([]);
-  const [productsLoading, setProductsLoading] = useState(true);
-  const [categories, setCategories] = useState([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [products, setProducts] = useState(fallbackProducts);
+  const [productsLoading, setProductsLoading] = useState(false);
+  const [categories, setCategories] = useState(fallbackCategories);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [coupons, setCoupons] = useState([]);
   const [couponsLoading, setCouponsLoading] = useState(true);
 
@@ -60,9 +60,7 @@ export function CartProvider({ children }) {
   };
 
   const fetchProducts = async (retries = 3, delay = 1000) => {
-    if (products.length === 0) {
-      setProductsLoading(true);
-    }
+    // Keep the existing snapshot visible while revalidating.
     try {
       const res = await fetch("/api/products?excludeGallery=true", { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to fetch products");
@@ -160,7 +158,16 @@ export function CartProvider({ children }) {
   useEffect(() => {
     fetchProducts();
     fetchCategories();
-    fetchCoupons();
+
+    const loadCoupons = () => fetchCoupons();
+    const idleId = window.requestIdleCallback
+      ? window.requestIdleCallback(loadCoupons, { timeout: 3000 })
+      : window.setTimeout(loadCoupons, 1500);
+
+    return () => {
+      if (window.cancelIdleCallback) window.cancelIdleCallback(idleId);
+      else window.clearTimeout(idleId);
+    };
   }, []);
 
   const refreshProducts = () => {
